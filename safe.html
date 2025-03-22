@@ -6,6 +6,9 @@
     <title>SafeSphere - Safety Reviews & Contacts</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
 </head>
 <body>
     <header>
@@ -14,12 +17,10 @@
                 <i class="fas fa-shield-alt"></i>
                 <span>SafeSphere</span>
             </div>
-            
         </div>
         <nav id="mobileNav" class="mobile-nav">
             <ul>
                 <li><a href="#" onclick="showSection('menuSection')"><i class="fas fa-home"></i> Home</a></li>
-
             </ul>
         </nav>
     </header>
@@ -31,7 +32,7 @@
         </div>
         
         <div class="card-grid">
-            <div class="card" onclick="showSection('personalSection')">
+            <div class="card" onclick="showSection('profileSection')">
                 <i class="fas fa-user-circle"></i>
                 <h3>Personal Details</h3>
                 <p>Manage your profile and favorite contacts</p>
@@ -56,69 +57,76 @@
         </div>
     </div>
 
-    <div class="container hidden" id="personalSection">
-        <h2><i class="fas fa-user-circle"></i> Personal Details</h2>
-        <div class="form-group">
-            <label for="nameInput">Your Name</label>
-            <input type="text" id="nameInput" placeholder="Enter your name" required>
-        </div>
-        <div class="form-group">
-            <label for="emailInput">Email Address</label>
-            <input type="email" id="emailInput" placeholder="Enter your email" required>
-        </div>
-        <div class="form-group">
-            <label for="phoneInput">Phone Number</label>
-            <input type="tel" id="phoneInput" placeholder="Enter your phone number" required>
-        </div>
-        <button onclick="registerUser()" class="btn-primary"><i class="fas fa-save"></i> Save Details</button>
-        
-        <div class="contacts-section">
-            <h3><i class="fas fa-address-book"></i> Favorite Contacts</h3>
-            <button onclick="accessContacts()" class="btn-secondary"><i class="fas fa-sync"></i> Refresh Contacts</button>
-            <div id="contactList" class="contact-grid"></div>
+    <!-- Personal Details Section -->
+    <div class="container hidden" id="profileSection">
+        <h2>My Profile</h2>
+        <div class="form-container">
+            <div class="form-group">
+                <label for="nameInput">Full Name</label>
+                <input type="text" id="nameInput" placeholder="Enter your full name">
+            </div>
+            <div class="form-group">
+                <label for="emailInput">Email Address</label>
+                <input type="email" id="emailInput" placeholder="Enter your email">
+            </div>
+            <div class="form-group">
+                <label for="phoneInput">Phone Number</label>
+                <input type="tel" id="phoneInput" placeholder="Enter your phone number">
+            </div>
+            <button onclick="registerUser()" class="btn-primary">Save Details</button>
+            <button onclick="showSection('menuSection')" class="btn-secondary">Cancel</button>
         </div>
     </div>
     
+    <!-- Search Section -->
     <div class="container hidden" id="searchSection">
-        <h2><i class="fas fa-search"></i> Search Safety Reviews</h2>
-        <div class="search-bar">
-            <input type="text" id="searchInput" placeholder="Search for a location">
-            <button onclick="searchReviews()" class="btn-primary"><i class="fas fa-search"></i></button>
+        <h2>Search Safety Reviews</h2>
+        <div id="searchContainer" class="search-container">
+            <input type="text" id="searchInput" placeholder="Enter a location name...">
         </div>
-        <div id="searchResults" class="results-container"></div>
+        <div id="searchResults" class="search-results">
+            <div class="empty-state">
+                <p>Enter a location name to search for safety reviews.</p>
+            </div>
+        </div>
     </div>
     
+    <!-- Review Section -->
     <div class="container hidden" id="reviewSection">
-        <h2><i class="fas fa-pen"></i> Submit a Safety Review</h2>
-        <div class="form-group">
-            <label for="locationInput">Location</label>
-            <input type="text" id="locationInput" placeholder="Enter a location" required>
-        </div>
-        <div class="form-group">
-            <label for="reviewInput">Your Review</label>
-            <textarea id="reviewInput" placeholder="Write your review..." rows="5" required></textarea>
-        </div>
-        <div class="form-group">
-            <label for="ratingInput">Safety Rating</label>
-            <div class="rating-select">
-                <select id="ratingInput">
-                    <option value="1">1 - Unsafe</option>
-                    <option value="2">2 - Somewhat Safe</option>
-                    <option value="3">3 - Neutral</option>
-                    <option value="4">4 - Safe</option>
-                    <option value="5">5 - Very Safe</option>
-                </select>
-                <div class="rating-display" id="ratingDisplay">
+        <h2>Share Your Safety Experience</h2>
+        <div class="form-container">
+            <div class="form-group">
+                <label for="locationInput">Location Name</label>
+                <input type="text" id="locationInput" placeholder="Enter the location name">
+            </div>
+            <div class="form-group">
+                <label for="reviewInput">Your Experience</label>
+                <textarea id="reviewInput" rows="5" placeholder="Describe your safety experience at this location..."></textarea>
+            </div>
+            <div class="form-group">
+                <label for="ratingInput">Safety Rating</label>
+                <div id="ratingDisplay" class="rating-display">
                     <i class="fas fa-shield-alt"></i>
                     <i class="fas fa-shield-alt"></i>
                     <i class="fas fa-shield-alt"></i>
                     <i class="fas fa-shield-alt"></i>
                     <i class="fas fa-shield-alt"></i>
                 </div>
+                <input type="hidden" id="ratingInput" value="3">
             </div>
+            <button onclick="submitReview()" class="btn-primary">Submit Review</button>
+            <button onclick="showSection('menuSection')" class="btn-secondary">Cancel</button>
         </div>
-        
-        <button onclick="submitReview()" class="btn-primary"><i class="fas fa-paper-plane"></i> Submit Review</button>
+    </div>
+    
+    <!-- Emergency Contacts Section -->
+    <div class="container hidden" id="contactsSection">
+        <h2>Emergency Contacts</h2>
+        <div id="contactList" class="contact-list">
+            <!-- Contacts will be loaded here -->
+        </div>
+        <button onclick="accessContacts()" class="btn-primary">Load Contacts</button>
+        <button onclick="showSection('menuSection')" class="btn-secondary">Back to Menu</button>
     </div>
     
     <footer>
