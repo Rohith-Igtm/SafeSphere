@@ -1,74 +1,58 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>S Gesture Detection</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin-top: 50px;
-        }
-        #status {
-            font-size: 24px;
-            color: #f30d0d;
-        }
-    </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PWA Project</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="manifest" href="manifest.json">
+    <script defer src="app.js"></script>
+    <script defer src="modules/gesture.js"></script>
+    <script defer src="modules/review.js"></script>
+    <script defer src="modules/contact.js"></script>
 </head>
 <body>
-    <h1>Shake in an "S" pattern to trigger SOS!</h1>
-    <p id="status">Status: Not detecting</p>
+    <header>
+        <h1>PWA App</h1>
+        <nav>
+            <button onclick="showPage('gesture')">Gesture Sensing</button>
+            <button onclick="showPage('review')">Review & Rating</button>
+            <button onclick="showPage('contact')">Contact</button>
+        </nav>
+    </header>
+
+    <main>
+        <section id="gesture" class="page">
+            <h2>Gesture Sensing</h2>
+            <canvas id="gestureCanvas"></canvas>
+            <p id="gestureOutput"></p>
+        </section>
+
+        <section id="review" class="page hidden">
+            <h2>Review & Rating</h2>
+            <form id="reviewForm">
+                <input type="text" id="reviewText" placeholder="Write a review...">
+                <button type="submit">Submit</button>
+            </form>
+            <div id="reviewsList"></div>
+        </section>
+
+        <section id="contact" class="page hidden">
+            <h2>Contact Information</h2>
+            <form id="contactForm">
+                <input type="text" id="name" placeholder="Your Name">
+                <input type="tel" id="phone" placeholder="Phone Number">
+                <button type="submit">Submit</button>
+            </form>
+        </section>
+    </main>
 
     <script>
-        let isDetecting = false;
-        let motionData = [];
-
-        // Start detection when the user clicks the screen
-        document.addEventListener('click', () => {
-            if (!isDetecting && window.DeviceMotionEvent) {
-                isDetecting = true;
-                document.getElementById("status").textContent = "Status: Detecting...";
-
-                // Listen to accelerometer data
-                window.addEventListener('devicemotion', (event) => {
-                    const acc = event.accelerationIncludingGravity;
-                    motionData.push({ x: acc.x, y: acc.y, timestamp: Date.now() });
-
-                    // Analyze data every 0.5 seconds
-                    if (motionData.length > 20) {
-                        checkForS();
-                        motionData = []; // Reset buffer
-                    }
-                });
-            }
-        });
-
-        // Simple "S" detection logic
-        function checkForS() {
-            let xChanges = [];
-            let yChanges = [];
-
-            // Calculate acceleration changes
-            for (let i = 1; i < motionData.length; i++) {
-                xChanges.push(Math.abs(motionData[i].x - motionData[i - 1].x));
-                yChanges.push(Math.abs(motionData[i].y - motionData[i - 1].y));
-            }
-
-            // Count significant peaks (adjust threshold as needed)
-            const xPeaks = xChanges.filter(val => val > 10).length;
-            const yPeaks = yChanges.filter(val => val > 10).length;
-
-            // Detect "S" pattern (3 directional changes)
-            if (xPeaks >= 3 || yPeaks >= 3) {
-                document.getElementById("status").textContent = "S Detected! Sending SOS...";
-                sendSOS(); // Trigger alert
-            }
-        }
-
-        // Simulate sending SOS (replace with actual API call later)
-        function sendSOS() {
-            console.log("SOS sent!");
-            alert("SOS sent to emergency contacts!");
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(page => page.classList.add('hidden'));
+            document.getElementById(pageId).classList.remove('hidden');
         }
     </script>
 </body>
 </html>
+
