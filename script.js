@@ -4,26 +4,40 @@ document.addEventListener("DOMContentLoaded", function () {
     history.replaceState({ section: 'menuSection' }, '', window.location);
 });
 
-function showSection(sectionId) {
+function showSection(sectionId, pushState = true) {
     document.querySelectorAll(".container").forEach(section => {
         section.classList.add("hidden");
     });
+
     document.getElementById(sectionId).classList.remove("hidden");
-    // Push state only if it's not the menu section
-    if (sectionId !== 'menuSection') {
-        history.pushState({ section: sectionId }, '', window.location);
+
+    if (pushState) {
+        history.pushState({ section: sectionId }, '', `#${sectionId}`);
     }
 }
 
+function showSection(sectionId, pushState = true) {
+    document.querySelectorAll(".container").forEach(section => {
+        section.classList.add("hidden");
+    });
+
+    document.getElementById(sectionId).classList.remove("hidden");
+
+    if (pushState) {
+        history.pushState({ section: sectionId }, '', `#${sectionId}`);
+    }
+}
+
+
 // Handle back/forward navigation
 window.addEventListener('popstate', function(event) {
-    const state = event.state;
-    if (state && state.section && state.section !== 'menuSection') {
-        showSection('menuSection');
-        // Replace current state with menu to prevent infinite back stack
-        history.replaceState({ section: 'menuSection' }, '', window.location);
+    if (event.state && event.state.section) {
+        showSection(event.state.section, false); // Don't push a new state when navigating back
+    } else {
+        showSection('menuSection', false); // Default to menu if no state is found
     }
 });
+
 
 function registerUser() {
     const name = document.getElementById("nameInput").value.trim();
@@ -65,5 +79,3 @@ function submitReview() {
     showSection('menuSection');
     loadReviews();
 }
-
-// Remaining functions (accessContacts, displayContacts, saveFavoriteContact, searchReviews, loadReviews) remain unchanged
