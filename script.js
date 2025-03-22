@@ -2,6 +2,13 @@ document.addEventListener("DOMContentLoaded", function () {
     loadReviews();
 });
 
+function showSection(sectionId) {
+    document.querySelectorAll(".container").forEach(section => {
+        section.classList.add("hidden");
+    });
+    document.getElementById(sectionId).classList.remove("hidden");
+}
+
 function registerUser() {
     const name = document.getElementById("nameInput").value.trim();
     const email = document.getElementById("emailInput").value.trim();
@@ -13,9 +20,7 @@ function registerUser() {
     }
     
     localStorage.setItem("user", JSON.stringify({ name, email, phone }));
-    alert("Registration successful!");
-    document.getElementById("loginSection").classList.add("hidden");
-    document.getElementById("contactSection").classList.remove("hidden");
+    alert("Personal details saved!");
 }
 
 function accessContacts() {
@@ -42,9 +47,6 @@ function displayContacts(contacts) {
         contactItem.addEventListener("click", () => saveFavoriteContact(contact));
         contactList.appendChild(contactItem);
     });
-    
-    document.getElementById("contactSection").classList.add("hidden");
-    document.getElementById("reviewSection").classList.remove("hidden");
 }
 
 function saveFavoriteContact(contact) {
