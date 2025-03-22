@@ -9,14 +9,19 @@
 </head>
 <body>
     <header>
-        <div class="logo">
-            <i class="fas fa-shield-alt"></i>
-            <span>SafeSphere</span>
+        <div class="header-container">
+            <div class="logo">
+                <i class="fas fa-shield-alt"></i>
+                <span>SafeSphere</span>
+            </div>
+            <button id="menuToggle" class="menu-toggle">
+                <i class="fas fa-bars"></i>
+            </button>
         </div>
-        <nav>
+        <nav id="mobileNav" class="mobile-nav">
             <ul>
                 <li><a href="#" onclick="showSection('menuSection')"><i class="fas fa-home"></i> Home</a></li>
-                
+
             </ul>
         </nav>
     </header>
@@ -114,8 +119,6 @@
                 </div>
             </div>
         </div>
-        
-       
         
         <button onclick="submitReview()" class="btn-primary"><i class="fas fa-paper-plane"></i> Submit Review</button>
     </div>
