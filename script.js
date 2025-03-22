@@ -46,6 +46,20 @@ function setOptimalViewport() {
     document.head.appendChild(viewportMeta);
 }
 
+function setupInitialState() {
+    // Add any additional initial setup needed
+    const searchSection = document.getElementById('searchSection');
+    if (searchSection && !document.getElementById('searchButton')) {
+        const searchForm = document.querySelector('#searchSection .form-group') || document.createElement('div');
+        const searchButtonContainer = document.createElement('div');
+        searchButtonContainer.className = 'form-group search-button-container';
+        searchButtonContainer.innerHTML = `
+            <button id="searchButton" class="btn-primary">Search</button>
+        `;
+        searchForm.parentNode.insertBefore(searchButtonContainer, searchForm.nextSibling);
+    }
+}
+
 function setupEventListeners() {
     window.addEventListener('resize', handleResize);
     window.addEventListener('popstate', handlePopState);
@@ -54,13 +68,23 @@ function setupEventListeners() {
     const ratingInput = document.getElementById("ratingInput");
     if (ratingInput) {
         ratingInput.addEventListener("change", updateRatingDisplay);
-        setupTouchRating();
+        setupRatingSystem();
     }
 
-    // Search Input
+    // Search Input and Button
     const searchInput = document.getElementById("searchInput");
     if (searchInput) {
-        searchInput.addEventListener("keyup", debounce(searchReviews, 300));
+        searchInput.addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                searchReviews();
+            }
+        });
+    }
+
+    const searchButton = document.getElementById("searchButton");
+    if (searchButton) {
+        searchButton.addEventListener("click", searchReviews);
     }
 
     // Mobile Touch Events
@@ -131,6 +155,9 @@ function searchReviews() {
         return;
     }
 
+    // Show loading state
+    resultsContainer.innerHTML = `<div class="loading-state"><i class="fas fa-spinner fa-spin"></i> Searching...</div>`;
+
     db.ref('reviews').orderByChild('location')
         .startAt(query)
         .endAt(query + '\uf8ff')
@@ -156,23 +183,80 @@ function showSection(sectionId, pushState = true) {
     adjustForCurrentDevice();
 }
 
+function handlePopState(event) {
+    if (event.state && event.state.section) {
+        showSection(event.state.section, false);
+    }
+}
+
 function updateRatingDisplay() {
     const rating = parseInt(document.getElementById("ratingInput").value);
     const stars = document.querySelectorAll("#ratingDisplay i");
     
     stars.forEach((star, index) => {
-        star.classList.remove("rating-1", "rating-2", "rating-3", "rating-4", "rating-5");
-        if (index < rating) star.classList.add(`rating-${rating}`);
+        // Remove all existing rating classes
+        star.className = "fas fa-star";
+        
+        // Add color class based on rating
+        if (index < rating) {
+            star.classList.add(`rating-${rating}`);
+        } else {
+            star.classList.add('rating-inactive');
+        }
     });
 }
 
+function setupRatingSystem() {
+    // Make sure we have the rating display container
+    const ratingDisplay = document.getElementById("ratingDisplay");
+    if (!ratingDisplay) return;
+    
+    // Clear existing stars if any
+    ratingDisplay.innerHTML = '';
+    
+    // Create 5 stars
+    for (let i = 0; i < 5; i++) {
+        const star = document.createElement('i');
+        star.className = 'fas fa-star rating-inactive';
+        star.dataset.value = i + 1;
+        ratingDisplay.appendChild(star);
+    }
+    
+    // Add event listeners to each star
+    document.querySelectorAll('#ratingDisplay i').forEach(star => {
+        star.addEventListener('click', () => {
+            document.getElementById("ratingInput").value = star.dataset.value;
+            updateRatingDisplay();
+        });
+        
+        // Add hover effect
+        star.addEventListener('mouseenter', () => {
+            const value = parseInt(star.dataset.value);
+            document.querySelectorAll('#ratingDisplay i').forEach((s, index) => {
+                s.classList.toggle('rating-hover', index < value);
+            });
+        });
+        
+        // Remove hover effect
+        star.addEventListener('mouseleave', () => {
+            document.querySelectorAll('#ratingDisplay i').forEach(s => {
+                s.classList.remove('rating-hover');
+            });
+        });
+    });
+    
+    // Initial update
+    updateRatingDisplay();
+}
+
 function setupMobileMenu() {
-    if (!document.getElementById('mobileMenu')) {
+    if (!document.querySelector('.mobile-menu-button')) {
         const menuButton = document.createElement('button');
         menuButton.className = 'mobile-menu-button';
         menuButton.innerHTML = '<i class="fas fa-bars"></i>';
         
         const mobileMenu = document.createElement('div');
+        mobileMenu.id = 'mobileMenu';
         mobileMenu.className = 'mobile-menu hidden';
         mobileMenu.innerHTML = `
             <div class="mobile-menu-header">
@@ -227,12 +311,14 @@ function validateReview(review) {
 
 function displayRecentReviews(reviews) {
     const container = document.getElementById("recentReviewsList");
-    container.innerHTML = reviews.map(review => `
+    if (!container) return;
+    
+    container.innerHTML = reviews.length > 0 ? reviews.map(review => `
         <div class="review">
             <div class="review-header">
                 <div class="review-location">${review.location}</div>
                 <div class="review-rating">
-                    ${Array(review.rating).fill('<i class="fas fa-shield-alt"></i>').join('')}
+                    ${getRatingStars(review.rating)}
                 </div>
             </div>
             <div class="review-content">
@@ -243,50 +329,76 @@ function displayRecentReviews(reviews) {
                 </div>
             </div>
         </div>
-    `).join('');
+    `).join('') : `<div class="empty-state">No reviews yet. Be the first to write one!</div>`;
+}
+
+function getRatingStars(rating) {
+    const ratingValue = parseInt(rating) || 0;
+    let stars = '';
+    
+    for (let i = 0; i < 5; i++) {
+        if (i < ratingValue) {
+            stars += `<i class="fas fa-star rating-${ratingValue}"></i>`;
+        } else {
+            stars += `<i class="fas fa-star rating-inactive"></i>`;
+        }
+    }
+    
+    return stars;
 }
 
 function displaySearchResults(results) {
     const container = document.getElementById("searchResults");
+    if (!container) return;
+    
     container.innerHTML = results.length > 0 ? 
-        results.map(review => `
-            <div class="result-card">
-                <h4>${review.location}</h4>
-                <div class="rating">${'⭐'.repeat(review.rating)}</div>
-                <p>${review.review}</p>
-                <div class="review-meta">
-                    <span>By ${review.userName}</span>
-                    <span>${new Date(review.timestamp).toLocaleDateString()}</span>
+        `<div class="search-results-count">${results.length} result${results.length > 1 ? 's' : ''} found</div>
+        <div class="search-results-grid">
+            ${results.map(review => `
+                <div class="result-card">
+                    <h4>${review.location}</h4>
+                    <div class="rating">${getRatingStars(review.rating)}</div>
+                    <p>${review.review}</p>
+                    <div class="review-meta">
+                        <span>By ${review.userName}</span>
+                        <span>${new Date(review.timestamp).toLocaleDateString()}</span>
+                    </div>
                 </div>
-            </div>
-        `).join('') :
-        `<div class="empty-state">No results found</div>`;
+            `).join('')}
+        </div>` :
+        `<div class="empty-state">No results found for your search</div>`;
 }
 
 function handleResize() {
-    const wasMobile = window.isMobileDevice;
     window.isMobileDevice = window.innerWidth < 768;
     
-    if (wasMobile !== window.isMobileDevice) {
-        if (window.isMobileDevice) setupMobileMenu();
-        else document.getElementById('mobileMenu')?.remove();
+    if (window.isMobileDevice) {
+        setupMobileMenu();
+    } else if (document.querySelector('.mobile-menu-button')) {
+        // Only remove if we need to
+        document.querySelector('.mobile-menu-button').remove();
+        document.getElementById('mobileMenu')?.remove();
     }
+    
     adjustForCurrentDevice();
 }
 
 function adjustForCurrentDevice() {
+    document.body.classList.toggle('mobile-view', window.isMobileDevice);
+    document.body.classList.toggle('desktop-view', !window.isMobileDevice);
+    
     document.querySelectorAll('.review').forEach(review => 
         review.classList.toggle('mobile-review', window.isMobileDevice)
     );
-}
-
-function setupTouchRating() {
-    document.querySelectorAll('#ratingDisplay i').forEach((star, index) => {
-        star.addEventListener('click', () => {
-            document.getElementById("ratingInput").value = index + 1;
-            updateRatingDisplay();
-        });
-    });
+    
+    // Adjust search results display
+    const searchResults = document.getElementById('searchResults');
+    if (searchResults) {
+        const resultsGrid = searchResults.querySelector('.search-results-grid');
+        if (resultsGrid) {
+            resultsGrid.classList.toggle('mobile-grid', window.isMobileDevice);
+        }
+    }
 }
 
 function debounce(func, timeout = 300) {
@@ -305,7 +417,15 @@ function showNotification(message, type = 'info') {
         <span>${message}</span>
     `;
     document.body.appendChild(notification);
-    setTimeout(() => notification.remove(), 3000);
+    
+    // Add animation
+    setTimeout(() => notification.classList.add('show'), 10);
+    
+    // Remove notification after delay
+    setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => notification.remove(), 300); // Wait for fade out animation
+    }, 3000);
 }
 
 function handleError(error, context) {
@@ -318,4 +438,18 @@ function resetReviewForm() {
     document.getElementById("reviewInput").value = "";
     document.getElementById("ratingInput").value = "3";
     updateRatingDisplay();
+}
+
+function loadUserData() {
+    // Fetch user data if available (assuming user authentication is implemented)
+    // For now, just check if we have user data stored in local storage
+    const storedUser = localStorage.getItem('currentUser');
+    if (storedUser) {
+        try {
+            currentUser = JSON.parse(storedUser);
+        } catch (e) {
+            console.error('Error parsing stored user data', e);
+            localStorage.removeItem('currentUser');
+        }
+    }
 }
