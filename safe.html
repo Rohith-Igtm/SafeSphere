@@ -80,6 +80,14 @@
                 <label for="phoneInput">Phone Number</label>
                 <input type="tel" id="phoneInput" placeholder="Enter your phone number">
             </div>
+            
+            <!-- New section for accessing contacts -->
+            <div class="form-group">
+                <label>Emergency Contacts</label>
+                <button onclick="accessContacts()" class="btn-primary"><i class="fas fa-address-book"></i> Access Contacts</button>
+                <div id="favoriteContactsList" class="favorite-contacts"></div>
+            </div>
+            
             <div class="button-group">
                 <button onclick="registerUser()" class="btn-primary"><i class="fas fa-save"></i> Save Details</button>
                 <button onclick="showSection('menuSection')" class="btn-secondary"><i class="fas fa-times"></i> Cancel</button>
@@ -143,11 +151,17 @@
     <!-- Emergency Contacts Section -->
     <div class="container hidden" id="contactsSection">
         <h2>Emergency Contacts</h2>
+        <div class="form-group">
+            <button onclick="accessContacts()" class="btn-primary"><i class="fas fa-address-book"></i> Load Contacts</button>
+        </div>
         <div id="contactList" class="contact-list">
             <!-- Contacts will be loaded here -->
         </div>
+        <div id="favoriteContacts" class="favorite-contacts">
+            <h3>Favorite Emergency Contacts</h3>
+            <div id="favoriteContactsDisplay"></div>
+        </div>
         <div class="button-group">
-            <button onclick="accessContacts()" class="btn-primary"><i class="fas fa-address-book"></i> Load Contacts</button>
             <button onclick="showSection('menuSection')" class="btn-secondary"><i class="fas fa-arrow-left"></i> Back to Menu</button>
         </div>
     </div>
