@@ -4,358 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SafeSphere - Safety Reviews & Contacts</title>
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Firebase SDK - unchanged -->
+    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
-    <style>
-        :root {
-            --primary: #4e54c8;
-            --primary-dark: #3c40a5;
-            --secondary: #43cea2;
-            --dark: #333;
-            --light: #f9f9f9;
-            --light-gray: #eaeaea;
-            --medium-gray: #888;
-            --danger: #e74c3c;
-            --warning: #f39c12;
-            --success: #2ecc71;
-            --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            --card-radius: 12px;
-            --transition: all 0.3s ease;
-        }
-        
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Poppins', sans-serif;
-            background: linear-gradient(135deg, #f5f7fa 0%, #e4e9f2 100%);
-            color: var(--dark);
-            line-height: 1.6;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        header {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            color: white;
-            padding: 1rem 0;
-            box-shadow: var(--shadow);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-        
-        .header-container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 2rem;
-        }
-        
-        .logo {
-            display: flex;
-            align-items: center;
-            font-size: 1.5rem;
-            font-weight: 700;
-        }
-        
-        .logo i {
-            margin-right: 10px;
-            font-size: 1.8rem;
-            color: var(--secondary);
-        }
-        
-        .mobile-nav ul {
-            display: flex;
-            list-style: none;
-        }
-        
-        .mobile-nav a {
-            color: white;
-            text-decoration: none;
-            padding: 0.5rem 1rem;
-            border-radius: 50px;
-            transition: var(--transition);
-        }
-        
-        .mobile-nav a:hover {
-            background-color: rgba(255, 255, 255, 0.1);
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 2rem;
-            flex: 1;
-        }
-        
-        .hidden {
-            display: none;
-        }
-        
-        .hero {
-            text-align: center;
-            margin-bottom: 3rem;
-            background: linear-gradient(rgba(78, 84, 200, 0.8), rgba(78, 84, 200, 0.6)), 
-                        url('https://images.unsplash.com/photo-1557683316-973673baf926?auto=format&fit=crop&w=1000');
-            background-size: cover;
-            background-position: center;
-            padding: 4rem 2rem;
-            border-radius: var(--card-radius);
-            color: white;
-            box-shadow: var(--shadow);
-        }
-        
-        .hero h1 {
-            font-size: 2.5rem;
-            margin-bottom: 1rem;
-            font-weight: 700;
-        }
-        
-        .hero p {
-            font-size: 1.2rem;
-            opacity: 0.9;
-        }
-        
-        .card-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
-            margin-bottom: 3rem;
-        }
-        
-        .card {
-            background: white;
-            border-radius: var(--card-radius);
-            padding: 2rem;
-            text-align: center;
-            box-shadow: var(--shadow);
-            transition: var(--transition);
-            cursor: pointer;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 24px rgba(78, 84, 200, 0.15);
-        }
-        
-        .card i {
-            font-size: 3rem;
-            margin-bottom: 1.5rem;
-            color: var(--primary);
-            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        
-        .card h3 {
-            margin-bottom: 1rem;
-            font-weight: 600;
-        }
-        
-        .card p {
-            color: var(--medium-gray);
-        }
-        
-        .recent-reviews {
-            background: white;
-            border-radius: var(--card-radius);
-            padding: 2rem;
-            box-shadow: var(--shadow);
-        }
-        
-        .recent-reviews h2 {
-            margin-bottom: 1.5rem;
-            font-weight: 600;
-            color: var(--primary-dark);
-            border-bottom: 2px solid var(--light-gray);
-            padding-bottom: 0.5rem;
-        }
-        
-        .form-container {
-            background: white;
-            border-radius: var(--card-radius);
-            padding: 2rem;
-            box-shadow: var(--shadow);
-            max-width: 600px;
-            margin: 0 auto;
-        }
-        
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-        
-        label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 500;
-            color: var(--dark);
-        }
-        
-        input, textarea {
-            width: 100%;
-            padding: 0.75rem 1rem;
-            border: 1px solid var(--light-gray);
-            border-radius: 6px;
-            font-family: 'Poppins', sans-serif;
-            font-size: 1rem;
-            transition: var(--transition);
-        }
-        
-        input:focus, textarea:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(78, 84, 200, 0.1);
-        }
-        
-        .btn-primary, .btn-secondary {
-            padding: 0.75rem 1.5rem;
-            border: none;
-            border-radius: 6px;
-            font-size: 1rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: var(--transition);
-            margin-right: 1rem;
-        }
-        
-        .btn-primary {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            color: white;
-        }
-        
-        .btn-primary:hover {
-            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
-            transform: translateY(-2px);
-        }
-        
-        .btn-secondary {
-            background: var(--light-gray);
-            color: var(--dark);
-        }
-        
-        .btn-secondary:hover {
-            background: #ddd;
-        }
-        
-        .search-container {
-            margin-bottom: 2rem;
-            display: flex;
-            gap: 10px;
-        }
-        
-        .search-container input {
-            flex: 1;
-        }
-        
-        .search-results {
-            background: white;
-            border-radius: var(--card-radius);
-            padding: 2rem;
-            box-shadow: var(--shadow);
-            min-height: 200px;
-        }
-        
-        .empty-state {
-            text-align: center;
-            color: var(--medium-gray);
-            padding: 2rem;
-        }
-        
-        .rating-display {
-            font-size: 1.5rem;
-            margin: 0.5rem 0;
-            display: flex;
-            gap: 5px;
-        }
-        
-        .rating-shield {
-            cursor: pointer;
-            transition: var(--transition);
-        }
-        
-        .rating-shield:hover {
-            transform: scale(1.2);
-        }
-        
-        .shield-1 { color: var(--danger); }
-        .shield-2 { color: #f17e5d; }
-        .shield-3 { color: var(--warning); }
-        .shield-4 { color: #98d85b; }
-        .shield-5 { color: var(--success); }
-        
-        .shield-inactive {
-            color: #ddd;
-        }
-        
-        .contact-list {
-            background: white;
-            border-radius: var(--card-radius);
-            box-shadow: var(--shadow);
-            margin-bottom: 2rem;
-            min-height: 200px;
-        }
-        
-        footer {
-            background: var(--primary-dark);
-            color: white;
-            text-align: center;
-            padding: 1.5rem;
-            margin-top: 2rem;
-        }
-        
-        /* Animations */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .container:not(.hidden) {
-            animation: fadeIn 0.5s ease-out;
-        }
-        
-        /* Responsive adjustments */
-        @media (max-width: 768px) {
-            .card-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .header-container {
-                padding: 0 1rem;
-            }
-            
-            .container {
-                padding: 1rem;
-            }
-            
-            .hero {
-                padding: 2rem 1rem;
-            }
-            
-            .hero h1 {
-                font-size: 2rem;
-            }
-            
-            .search-container {
-                flex-direction: column;
-            }
-        }
-    </style>
 </head>
 <body>
     <header>
@@ -364,10 +17,17 @@
                 <i class="fas fa-shield-alt"></i>
                 <span>SafeSphere</span>
             </div>
+            <button id="menuToggle" class="menu-toggle">
+                <i class="fas fa-bars"></i>
+            </button>
         </div>
         <nav id="mobileNav" class="mobile-nav">
             <ul>
                 <li><a href="#" onclick="showSection('menuSection')"><i class="fas fa-home"></i> Home</a></li>
+                <li><a href="#" onclick="showSection('profileSection')"><i class="fas fa-user"></i> Profile</a></li>
+                <li><a href="#" onclick="showSection('searchSection')"><i class="fas fa-search"></i> Search</a></li>
+                <li><a href="#" onclick="showSection('reviewSection')"><i class="fas fa-star"></i> Review</a></li>
+                <li><a href="#" onclick="showSection('contactsSection')"><i class="fas fa-address-book"></i> Contacts</a></li>
             </ul>
         </nav>
     </header>
@@ -420,17 +80,21 @@
                 <label for="phoneInput">Phone Number</label>
                 <input type="tel" id="phoneInput" placeholder="Enter your phone number">
             </div>
-            <button onclick="registerUser()" class="btn-primary">Save Details</button>
-            <button onclick="showSection('menuSection')" class="btn-secondary">Cancel</button>
+            <div class="button-group">
+                <button onclick="registerUser()" class="btn-primary"><i class="fas fa-save"></i> Save Details</button>
+                <button onclick="showSection('menuSection')" class="btn-secondary"><i class="fas fa-times"></i> Cancel</button>
+            </div>
         </div>
     </div>
     
     <!-- Search Section -->
     <div class="container hidden" id="searchSection">
         <h2>Search Safety Reviews</h2>
-        <div id="searchContainer" class="search-container">
-            <input type="text" id="searchInput" placeholder="Enter a location name...">
-            <button onclick="searchReviews()" class="btn-primary">Search</button>
+        <div class="search-container">
+            <div class="search-bar">
+                <input type="text" id="searchInput" placeholder="Enter a location name...">
+                <button onclick="searchReviews()" class="btn-primary"><i class="fas fa-search"></i></button>
+            </div>
         </div>
         <div id="searchResults" class="search-results">
             <div class="empty-state">
@@ -453,18 +117,26 @@
             </div>
             <div class="form-group">
                 <label for="ratingInput">Safety Rating</label>
+                <div class="rating-explanation">
+                    <span class="rating-text rating-1">Very Unsafe</span>
+                    <span class="rating-text rating-2">Unsafe</span>
+                    <span class="rating-text rating-3">Neutral</span>
+                    <span class="rating-text rating-4">Safe</span>
+                    <span class="rating-text rating-5">Very Safe</span>
+                </div>
                 <div id="ratingDisplay" class="rating-display">
-                    <i class="fas fa-shield-alt rating-shield shield-1" onclick="setRating(1)" id="shield1"></i>
-                    <i class="fas fa-shield-alt rating-shield shield-2" onclick="setRating(2)" id="shield2"></i>
-                    <i class="fas fa-shield-alt rating-shield shield-3" onclick="setRating(3)" id="shield3"></i>
-                    <i class="fas fa-shield-alt rating-shield shield-4" onclick="setRating(4)" id="shield4"></i>
-                    <i class="fas fa-shield-alt rating-shield shield-5" onclick="setRating(5)" id="shield5"></i>
+                    <i class="fas fa-shield-alt" data-rating="1"></i>
+                    <i class="fas fa-shield-alt" data-rating="2"></i>
+                    <i class="fas fa-shield-alt" data-rating="3"></i>
+                    <i class="fas fa-shield-alt" data-rating="4"></i>
+                    <i class="fas fa-shield-alt" data-rating="5"></i>
                 </div>
                 <input type="hidden" id="ratingInput" value="3">
-                <p><small>Click on a shield to set your rating (1-5)</small></p>
             </div>
-            <button onclick="submitReview()" class="btn-primary">Submit Review</button>
-            <button onclick="showSection('menuSection')" class="btn-secondary">Cancel</button>
+            <div class="button-group">
+                <button onclick="submitReview()" class="btn-primary"><i class="fas fa-paper-plane"></i> Submit Review</button>
+                <button onclick="showSection('menuSection')" class="btn-secondary"><i class="fas fa-times"></i> Cancel</button>
+            </div>
         </div>
     </div>
     
@@ -474,77 +146,24 @@
         <div id="contactList" class="contact-list">
             <!-- Contacts will be loaded here -->
         </div>
-        <button onclick="accessContacts()" class="btn-primary">Load Contacts</button>
-        <button onclick="showSection('menuSection')" class="btn-secondary">Back to Menu</button>
+        <div class="button-group">
+            <button onclick="accessContacts()" class="btn-primary"><i class="fas fa-address-book"></i> Load Contacts</button>
+            <button onclick="showSection('menuSection')" class="btn-secondary"><i class="fas fa-arrow-left"></i> Back to Menu</button>
+        </div>
+    </div>
+    
+    <!-- Toast Notification -->
+    <div id="notificationToast" class="notification-toast hidden">
+        <div class="notification-content">
+            <i class="notification-icon fas fa-check-circle"></i>
+            <span id="notificationMessage"></span>
+        </div>
     </div>
     
     <footer>
         <p>&copy; 2025 SafeSphere - Making communities safer together</p>
     </footer>
 
-    <script>
-        // Function to show the selected section and hide others
-        function showSection(sectionId) {
-            const sections = document.querySelectorAll('.container');
-            sections.forEach(section => {
-                section.classList.add('hidden');
-            });
-            
-            document.getElementById(sectionId).classList.remove('hidden');
-        }
-        
-        // Function to set the rating
-        function setRating(rating) {
-            document.getElementById('ratingInput').value = rating;
-            updateRatingDisplay(rating);
-        }
-        
-        // Function to update the rating display based on selected rating
-        function updateRatingDisplay(rating) {
-            for (let i = 1; i <= 5; i++) {
-                const shield = document.getElementById('shield' + i);
-                
-                if (i <= rating) {
-                    // Remove inactive class if present
-                    shield.classList.remove('shield-inactive');
-                } else {
-                    // Add inactive class
-                    shield.classList.add('shield-inactive');
-                }
-            }
-        }
-        
-        // Function to search reviews
-        function searchReviews() {
-            const searchTerm = document.getElementById('searchInput').value.trim();
-            const searchResults = document.getElementById('searchResults');
-            
-            // Clear previous results
-            searchResults.innerHTML = '';
-            
-            if (searchTerm === '') {
-                searchResults.innerHTML = '<div class="empty-state"><p>Please enter a location name to search.</p></div>';
-                return;
-            }
-            
-            // Here you would normally call your Firebase function to search
-            // For now, just show a message that search was performed
-            searchResults.innerHTML = `<p>Searching for reviews of "${searchTerm}"...</p>`;
-            
-            // Normally, you'd call your Firebase search function here
-            // searchFirebaseReviews(searchTerm);
-        }
-        
-        // Initialize the rating display
-        window.onload = function() {
-            updateRatingDisplay(3); // Default rating
-        };
-        
-        // Your existing Firebase functions would go here
-        // function registerUser() { ... }
-        // function submitReview() { ... }
-        // function accessContacts() { ... }
-        // etc.
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>
