@@ -3,35 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Location Safety Review & Contacts</title>
+    <title>SafeSphere - Safety Reviews & Contacts</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="container" id="loginSection">
-        <h1>Register</h1>
+    <div class="container" id="menuSection">
+        <h1>Welcome to SafeSphere</h1>
+        <button onclick="showSection('personalSection')">Personal Details</button>
+        <button onclick="showSection('searchSection')">Search Reviews</button>
+        <button onclick="showSection('reviewSection')">Post Review</button>
+    </div>
+    
+    <div class="container hidden" id="personalSection">
+        <h2>Personal Details</h2>
         <input type="text" id="nameInput" placeholder="Enter your name" required>
         <input type="email" id="emailInput" placeholder="Enter your email" required>
         <input type="tel" id="phoneInput" placeholder="Enter your phone number" required>
-        <button onclick="registerUser()">Register</button>
-    </div>
-    
-    <div class="container hidden" id="contactSection">
-        <h2>Select Favorite Contacts</h2>
+        <button onclick="registerUser()">Save Details</button>
+        <h3>Favorite Contacts</h3>
         <button onclick="accessContacts()">Access Contacts</button>
         <div id="contactList"></div>
     </div>
     
-    <div class="container hidden" id="reviewSection">
-        <h1>Location Safety Review</h1>
-        
-        <!-- Search Reviews Section -->
+    <div class="container hidden" id="searchSection">
+        <h2>Search Reviews</h2>
         <input type="text" id="searchInput" placeholder="Search for a location">
         <button onclick="searchReviews()">Search</button>
         <div id="searchResults"></div>
-
-        <hr>
-
-        <!-- Submit Review Section -->
+    </div>
+    
+    <div class="container hidden" id="reviewSection">
         <h2>Submit a Review</h2>
         <input type="text" id="locationInput" placeholder="Enter a location" required>
         <textarea id="reviewInput" placeholder="Write your review..." required></textarea>
