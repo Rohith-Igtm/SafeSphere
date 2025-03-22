@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SafeSphere - Location Safety App</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.1/umd/lucide.min.js"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    }
+    
+    body {
+      background-color: #f9fafb;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    
+    .app-container {
+      max-width: 480px;
+      width: 100%;
+      margin: 0 auto;
+      background-color: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      padding: 24px;
+      position: relative;
+    }
+    
+    h2 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+    
+    .search-form {
+      margin-bottom: 1rem;
+    }
+    
+    .search-input-container {
+      display: flex;
+    }
+    
+    input[type="text"], textarea {
+      flex-grow: 1;
+      padding: 0.5rem 1rem;
+      border: 1px solid #d1d5db;
+      border-radius: 0.5rem 0 0 0.5rem;
+      outline: none;
+    }
+    
+    input[type="text"]:focus, textarea:focus {
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
+    }
+    
+    .search-button {
+      background-color: #2563eb;
+      color: white;
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 0 0.5rem 0.5rem 0;
+      cursor: pointer;
+    }
+    
+    .search-button:hover {
+      background-color: #1d4ed8;
+    }
+    
+    .button-group {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+    }
+    
+    .location-button {
+      flex: 1;
+      background-color: #dbeafe;
+      color: #1e40af;
+      font-weight: 500;
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .location-button:hover {
+      background-color: #bfdbfe;
+    }
+    
+    .submit-button {
+      flex: 1;
+      background-color: #dcfce7;
+      color: #166534;
+      font-weight: 500;
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .submit-button:hover {
+      background-color: #bbf7d0;
+    }
+    
+    .button-icon {
+      margin-right: 0.5rem;
+    }
+    
+    .error-message {
+      background-color: #fee2e2;
+      border-left: 4px solid #ef4444;
+      color: #b91c1c;
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+    
+    .success-message {
+      background-color: #dcfce7;
+      border-left: 4px solid #22c55e;
+      color: #166534;
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+    
+    .info-text {
+      margin-top: 1rem;
+      font-size: 0.75rem;
+      text-align: center;
+      color: #6b7280;
+    }
+    
+    .back-button {
+      margin-right: 0.5rem;
+      color: #2563eb;
+      background: none;
+      border: none;
+      cursor: pointer;
+    }
+    
+    .back-button:hover {
+      color: #1d4ed8;
+    }
+    
+    .header-row {
+      display: flex;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+    
+    label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: #374151;
+      margin-bottom: 0.5rem;
+    }
+    
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+    
+    textarea {
+      width: 100%;
+      border-radius: 0.5rem;
+      resize: vertical;
+      min-height: 100px;
+    }
+    
+    .submit-review-button {
+      width: 100%;
+      background-color: #2563eb;
+      color: white;
+      font-weight: 700;
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .submit-review-button:hover {
+      background-color: #1d4ed8;
+    }
+    
+    .submit-review-button:disabled {
+      background-color: #93c5fd;
+      cursor: not-allowed;
+    }
+    
+    .safety-shields {
+      display: flex;
+    }
+    
+    .rating-shield {
+      margin: 0 0.25rem;
+      cursor: pointer;
+    }
+    
+    .rating-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    
+    .threat-level {
+      font-weight: 500;
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+    
+    .rating-gradient {
+      width: 100%;
+      height: 0.5rem;
+      background-color: #e5e7eb;
+      border-radius: 9999px;
+      margin-bottom: 1rem;
+      overflow: hidden;
+    }
+    
+    .gradient-bar {
+      display: flex;
+      width: 100%;
+      height: 100%;
+    }
+    
+    .gradient-section {
+      width: 20%;
+      height: 100%;
+    }
+    
+    .gradient-section:first-child {
+      border-top-left-radius: 9999px;
+      border-bottom-left-radius: 9999px;
+      background-color: #ef4444;
+    }
+    
+    .gradient-section:nth-child(2) {
+      background-color: #f97316;
+    }
+    
+    .gradient-section:nth-child(3) {
+      background-color: #eab308;
+    }
+    
+    .gradient-section:nth-child(4) {
+      background-color: #84cc16;
+    }
+    
+    .gradient-section:last-child {
+      border-top-right-radius: 9999px;
+      border-bottom-right-radius: 9999px;
+      background-color: #22c55e;
+    }
+    
+    .location-info {
+      background-color: #f3f4f6;
+      border-radius: 0.5rem;
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+    
+    .location-name {
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+    
+    .safety-score {
+      display: flex;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
+    
+    .score-text {
+      margin-right: 0.5rem;
+    }
+    
+    .review-count {
+      font-size: 0.875rem;
+      color: #4b5563;
+    }
+    
+    .add-review-button {
+      margin-top: 0.5rem;
+      background-color: #dbeafe;
+      color: #1e40af;
+      font-size: 0.875rem;
+      font-weight: 500;
+      padding: 0.25rem 1rem;
+      border: none;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+    }
+    
+    .add-review-button:hover {
+      background-color: #bfdbfe;
+    }
+    
+    .no-reviews {
+      background-color: #fef3c7;
+      border-radius: 0.5rem;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      color: #92400e;
+    }
+    
+    .reviews-heading {
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+    
+    .review-item {
+      border-bottom: 1px solid #e5e7eb;
+      padding: 0.75rem 0;
+    }
+    
+    .review-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 0.5rem;
+    }
+    
+    .review-location {
+      font-weight: 500;
+    }
+    
+    .review-date {
+      font-size: 0.75rem;
+      color: #6b7280;
+      margin-left: 0.5rem;
+    }
+    
+    .review-rating {
+      display: flex;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
+    
+    .rating-text {
+      margin-left: 0.5rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+    }
+    
+    .review-text {
+      font-size: 0.875rem;
+      color: #374151;
+      margin-top: 0.25rem;
+    }
+    
+    .empty-reviews {
+      text-align: center;
+      padding: 1rem 0;
+      color: #6b7280;
+    }
+    
+    .loading-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: rgba(255, 255, 255, 0.8);
+      z-index: 10;
+    }
+    
+    .loading-spinner {
+      width: 2rem;
+      height: 2rem;
+      border: 4px solid #3b82f6;
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 0.5rem auto;
+    }
+    
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="app-container" class="app-container">
+    <!-- Content will be dynamically rendered here -->
+  </div>
+
+  <script>
+    // Initialize Lucide icons
+    lucide.createIcons();
+    
+    document.addEventListener('DOMContentLoaded', function() {
+      // Application state
+      const state = {
+        view: 'search', // 'search', 'submit', 'results'
+        locationName: '',
+        currentLocation: null,
+        searchQuery: '',
+        reviews: [],
+        locationScore: null,
+        
+        // States for review submission
+        rating: 0,
+        hover: 0,
+        reviewText: '',
+        submitted: false,
+        loading: false,
+        error: '',
+      };
+
+      // Colors for the rating system
+      const ratingColors = {
+        0: '#ccc', // Default gray for unselected
+        1: '#ef4444', // Red - Dangerous
+        2: '#fb923c', // Orange - Concerning
+        3: '#facc15', // Yellow - Moderate
+        4: '#a3e635', // Light Green - Safe
+        5: '#4ade80', // Green - Very Safe
+      };
+
+      // Threat level descriptions
+      const threatLevels = {
+        0: 'Select Safety Rating',
+        1: 'High Risk Area',
+        2: 'Concerning',
+        3: 'Exercise Caution',
+        4: 'Generally Safe',
+        5: 'Very Safe'
+      };
+
+      // Format date to readable format
+      function formatDate(dateString) {
+        const options = { year: 'numeric', month: 'short', day: 'numeric' };
+        return new Date(dateString).toLocaleDateString(undefined, options);
+      }
+
+      // Get current location using browser geolocation
+      function getCurrentLocation() {
+        if (navigator.geolocation) {
+          setState({ loading: true, error: '' });
+          
+          navigator.geolocation.getCurrentPosition(
+            (position) => {
+              const { latitude, longitude } = position.coords;
+              setState({ currentLocation: { latitude, longitude } });
+              
+              // Try to get location name using reverse geocoding
+              fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`)
+                .then(response => response.json())
+                .then(data => {
+                  if (data.display_name) {
+                    setState({
+                      locationName: data.display_name.split(',').slice(0, 2).join(', '),
+                      loading: false
+                    });
+                  }
+                })
+                .catch(err => {
+                  console.error('Error getting location name:', err);
+                  setState({ loading: false });
+                });
+            },
+            (err) => {
+              setState({
+                error: 'Location access denied. Please enable location services.',
+                loading: false
+              });
+              console.error(err);
+            }
+          );
+        } else {
+          setState({ error: 'Geolocation is not supported by your browser.' });
+        }
+      }
+
+      // Simulate storing review to "blockchain"/database
+      function storeReview(reviewData) {
+        return new Promise((resolve) => {
+          // Simulate network delay
+          setTimeout(() => {
+            // Get existing reviews from localStorage (simulating a database)
+            const existingReviews = JSON.parse(localStorage.getItem('safesphereReviews') || '[]');
+            
+            // Add the new review with an ID
+            const newReview = {
+              ...reviewData,
+              id: Date.now().toString(),
+              createdAt: new Date().toISOString()
+            };
+            
+            // Add to "database"
+            const updatedReviews = [newReview, ...existingReviews];
+            localStorage.setItem('safesphereReviews', JSON.stringify(updatedReviews));
+            
+            resolve(newReview);
+          }, 1000);
+        });
+      }
+
+      // Simulate fetching reviews from "blockchain"/database
+      function fetchReviews(query) {
+        return new Promise((resolve) => {
+          // Simulate network delay
+          setTimeout(() => {
+            // Get reviews from localStorage (simulating a database)
+            const allReviews = JSON.parse(localStorage.getItem('safesphereReviews') || '[]');
+            
+            // Filter by location name if a query is provided
+            const filteredReviews = query 
+              ? allReviews.filter(review => 
+                  review.locationName.toLowerCase().includes(query.toLowerCase())
+                )
+              : allReviews;
+            
+            resolve(filteredReviews);
+          }, 1000);
+        });
+      }
+
+      // Calculate average safety score from reviews
+      function calculateSafetyScore(reviewsData) {
+        if (!reviewsData || reviewsData.length === 0) return null;
+        
+        const total = reviewsData.reduce((sum, review) => sum + review.rating, 0);
+        return {
+          averageSafety: parseFloat((total / reviewsData.length).toFixed(1)),
+          totalReviews: reviewsData.length
+        };
+      }
+
+      // Handle review submission
+      async function handleSubmit(e) {
+        if (e) e.preventDefault();
+        
+        if (state.rating === 0) {
+          alert('Please select a safety rating before submitting');
+          return;
+        }
+        
+        if (!state.locationName) {
+          alert('Please enter a location name');
+          return;
+        }
+        
+        setState({ loading: true, error: '' });
+        
+        try {
+          // Prepare review data
+          const reviewData = {
+            locationName: state.locationName,
+            rating: state.rating,
+            reviewText: state.reviewText,
+            latitude: state.currentLocation?.latitude || null,
+            longitude: state.currentLocation?.longitude || null,
+          };
+          
+          // Store the review
+          await storeReview(reviewData);
+          
+          // Show success message
+          setState({ submitted: true });
+          
+          // Reset form after 3 seconds
+          setTimeout(() => {
+            setState({
+              submitted: false,
+              rating: 0, 
+              reviewText: '',
+              view: 'search'
+            });
+          }, 3000);
+        } catch (error) {
+          console.error('Error submitting review:', error);
+          setState({ 
+            error: 'Failed to submit review. Please try again.',
+            loading: false
+          });
+        }
+      }
+
+      // Handle location search
+      async function handleSearch(e) {
+        if (e) e.preventDefault();
+        
+        if (!state.searchQuery.trim()) {
+          setState({ error: 'Please enter a location to search' });
+          return;
+        }
+        
+        setState({ loading: true, error: '' });
+        
+        try {
+          // Fetch reviews for the searched location
+          const data = await fetchReviews(state.searchQuery);
+          
+          // Calculate safety score
+          const score = calculateSafetyScore(data);
+          
+          setState({
+            reviews: data,
+            locationScore: score,
+            view: 'results',
+            loading: false
+          });
+        } catch (error) {
+          setState({
+            error: 'Failed to fetch location reviews. Please try again.',
+            loading: false
+          });
+          console.error(error);
+        }
+      }
+
+      // Render safety shields for a given rating
+      function renderSafetyShields(ratingValue, size = 36, clickable = false) {
+        let html = '<div class="safety-shields">';
+        
+        for (let shield = 1; shield <= 5; shield++) {
+          const displayValue = clickable ? (state.hover || ratingValue) : ratingValue;
+          const fillColor = shield <= displayValue 
+            ? ratingColors[shield <= ratingValue ? ratingValue : shield] 
+            : '#ccc';
+          
+          html += `
+            <div 
+              class="rating-shield" 
+              data-rating="${shield}" 
+              ${clickable ? 'data-clickable="true"' : ''}
+              style="${size === 18 ? 'margin: 0 1px;' : ''}"
+            >
+              <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                width="${size}" 
+                height="${size}" 
+                viewBox="0 0 24 24" 
+                fill="${fillColor}" 
+                stroke="${fillColor}" 
+                stroke-width="2" 
+                stroke-linecap="round" 
+                stroke-linejoin="round" 
+                class="lucide lucide-shield"
+              >
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+              </svg>
+            </div>
+          `;
+        }
+        
+        html += '</div>';
+        return html;
+      }
+
+      // Update a part of the application state
+      function setState(newState) {
+        // Update state
+        Object.assign(state, newState);
+        
+        // Re-render UI
+        renderApp();
+      }
+
+      // Render the search view
+      function renderSearchView() {
+        return `
+          <h2>SafeSphere Location Safety</h2>
+          
+          <form id="search-form" class="search-form">
+            <div class="search-input-container">
+              <input
+                type="text"
+                placeholder="Search location (e.g., Central Park, NYC)"
+                value="${state.searchQuery}"
+                id="search-input"
+              />
+              <button type="submit" class="search-button">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-search"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+              </button>
+            </div>
+          </form>
+          
+          <div class="button-group">
+            <button id="find-nearby-button" class="location-button">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-map-pin button-icon"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+              Find Nearby Reviews
+            </button>
+            
+            <button id="submit-review-button" class="submit-button">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-shield button-icon"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              Submit Review
+            </button>
+          </div>
+          
+          ${state.error ? `<div class="error-message"><p>${state.error}</p></div>` : ''}
+          
+          <div class="info-text">
+            <p>Help keep our community safe by sharing and checking location safety reviews.</p>
+          </div>
+        `;
+      }
+
+      // Render the submit review view
+      function renderSubmitView() {
+        return `
+          <div class="header-row">
+            <button id="back-button" class="back-button">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+            </button>
+            <h2>SafeSphere Location Safety Review</h2>
+          </div>
+          
+          ${state.submitted 
+            ? `<div class="success-message" role="alert">
+                <p style="font-weight: bold;">Thank you!</p>
+                <p>Your safety review has been submitted and will help keep our community informed.</p>
+              </div>` 
+            : `<form id="review-form">
+                <div class="form-group">
+                  <label for="locationName">Location Name:</label>
+                  <input
+                    id="locationName"
+                    type="text"
+                    placeholder="Enter location name"
+                    value="${state.locationName}"
+                    required
+                  />
+                </div>
+                
+                <div class="form-group">
+                  <p style="font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 0.5rem;">Rate the safety level of this location:</p>
+                  
+                  <div class="rating-container">
+                    <div id="rating-shields">
+                      ${renderSafetyShields(state.rating, 36, true)}
+                    </div>
+                    
+                    <div class="threat-level">
+                      <span style="color: ${ratingColors[state.rating || state.hover]}">
+                        ${threatLevels[state.rating || state.hover] || 'Select Safety Rating'}
+                      </span>
+                    </div>
+                    
+                    <div class="rating-gradient">
+                      <div class="gradient-bar">
+                        <div class="gradient-section"></div>
+                        <div class="gradient-section"></div>
+                        <div class="gradient-section"></div>
+                        <div class="gradient-section"></div>
+                        <div class="gradient-section"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="form-group">
+                  <label for="reviewText">Describe any safety concerns or observations:</label>
+                  <textarea
+                    id="reviewText"
+                    rows="4"
+                    placeholder="Share details about this location's safety..."
+                  >${state.reviewText}</textarea>
+                </div>
+                
+                <div>
+                  <button
+                    type="submit"
+                    class="submit-review-button"
+                    ${state.loading ? 'disabled' : ''}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-shield button-icon"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    ${state.loading ? 'Submitting...' : 'Submit Safety Review'}
+                  </button>
+                </div>
+              </form>`
+          }
+          
+          <div class="info-text">
+            <p>Your reviews help our community stay safer. All data is anonymized and secured with blockchain.</p>
+          </div>
+        `;
+      }
+
+      // Render the results view
+      function renderResultsView() {
+        return `
+          <div class="header-row">
+            <button id="back-button" class="back-button">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+            </button>
+            <h2>SafeSphere Safety Information</h2>
+          </div>
+          
+          ${state.locationScore 
+            ? `<div class="location-info">
+                <h3 class="location-name">${state.searchQuery}</h3>
+                <div class="safety-score">
+                  <div class="score-text">Safety Score: ${state.locationScore.averageSafety}/5</div>
+                  ${renderSafetyShields(Math.round(state.locationScore.averageSafety), 24)}
+                </div>
+                
+                <div>
+                  <span 
+                    style="font-weight: 500; color: ${ratingColors[Math.round(state.locationScore.averageSafety)]}"
+                  >
+                    ${threatLevels[Math.round(state.locationScore.averageSafety)]}
+                  </span>
+                </div>
+                
+                <p class="review-count">Based on ${state.locationScore.totalReviews} ${state.locationScore.totalReviews === 1 ? 'review' : 'reviews'}</p>
+                
+                <div>
+                  <button id="add-review-button" class="add-review-button">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-shield button-icon"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    Add Your Review
+                  </button>
+                </div>
+              </div>`
+            : `<div class="no-reviews">
+                <p>No safety reviews available for this location yet.</p>
+                <button id="be-first-review-button" class="add-review-button">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-shield button-icon"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                  Be the first to review
+                </button>
+              </div>`
+          }
+          
+          ${state.reviews.length > 0 
+            ? `<div>
+                <h3 class="reviews-heading">Safety Reviews</h3>
+                ${state.reviews.map((review) => `
+                  <div class="review-item">
+                    <div class="review-header">
+                      <div class="review-location">${review.locationName}</div>
+                      <div class="review-date">${formatDate(review.createdAt)}</div>
+                    </div>
+                    
+                    <div class="review-rating">
+                      ${renderSafetyShields(review.rating, 18)}
+                      <span 
+                        class="rating-text"
+                        style="color: ${ratingColors[review.rating]}"
+                      >
+                        ${threatLevels[review.rating]}
+                      </span>
+                    </div>
+                    
+                    ${review.reviewText 
+                      ? `<p class="review-text">${review.reviewText}</p>` 
+                      : ''}
+                  </div>
+                `).join('')}
+              </div>`
+            : `<div class="empty-reviews">
+                <p>No reviews available for this location.</p>
+              </div>`
+          }
+        `;
+      }
+
+      // Render loading overlay
