@@ -1,15 +1,74 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SafeSphere</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
+    <title>S Gesture Detection</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 50px;
+        }
+        #status {
+            font-size: 24px;
+            color: green;
+        }
+    </style>
 </head>
 <body>
-    <h1>Welcome to SafeSphere</h1>
-    <p>This is the base web app.</p>
-    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <h1>Shake in an "S" pattern to trigger SOS!</h1>
+    <p id="status">Status: Not detecting</p>
+
+    <script>
+        let isDetecting = false;
+        let motionData = [];
+
+        // Start detection when the user clicks the screen
+        document.addEventListener('click', () => {
+            if (!isDetecting && window.DeviceMotionEvent) {
+                isDetecting = true;
+                document.getElementById("status").textContent = "Status: Detecting...";
+
+                // Listen to accelerometer data
+                window.addEventListener('devicemotion', (event) => {
+                    const acc = event.accelerationIncludingGravity;
+                    motionData.push({ x: acc.x, y: acc.y, timestamp: Date.now() });
+
+                    // Analyze data every 0.5 seconds
+                    if (motionData.length > 20) {
+                        checkForS();
+                        motionData = []; // Reset buffer
+                    }
+                });
+            }
+        });
+
+        // Simple "S" detection logic
+        function checkForS() {
+            let xChanges = [];
+            let yChanges = [];
+
+            // Calculate acceleration changes
+            for (let i = 1; i < motionData.length; i++) {
+                xChanges.push(Math.abs(motionData[i].x - motionData[i - 1].x));
+                yChanges.push(Math.abs(motionData[i].y - motionData[i - 1].y));
+            }
+
+            // Count significant peaks (adjust threshold as needed)
+            const xPeaks = xChanges.filter(val => val > 10).length;
+            const yPeaks = yChanges.filter(val => val > 10).length;
+
+            // Detect "S" pattern (3 directional changes)
+            if (xPeaks >= 3 || yPeaks >= 3) {
+                document.getElementById("status").textContent = "S Detected! Sending SOS...";
+                sendSOS(); // Trigger alert
+            }
+        }
+
+        // Simulate sending SOS (replace with actual API call later)
+        function sendSOS() {
+            console.log("SOS sent!");
+            alert("SOS sent to emergency contacts!");
+        }
+    </script>
 </body>
 </html>
