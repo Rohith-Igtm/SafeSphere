@@ -4,11 +4,325 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SafeSphere - Safety Reviews & Contacts</title>
-    <link rel="stylesheet" href="styles.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Firebase SDK -->
+    <!-- Firebase SDK - unchanged -->
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
+    <style>
+        :root {
+            --primary: #4e54c8;
+            --primary-dark: #3c40a5;
+            --secondary: #43cea2;
+            --dark: #333;
+            --light: #f9f9f9;
+            --light-gray: #eaeaea;
+            --medium-gray: #888;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            --card-radius: 12px;
+            --transition: all 0.3s ease;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e9f2 100%);
+            color: var(--dark);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 1rem 0;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        
+        .logo i {
+            margin-right: 10px;
+            font-size: 1.8rem;
+            color: var(--secondary);
+        }
+        
+        .mobile-nav ul {
+            display: flex;
+            list-style: none;
+        }
+        
+        .mobile-nav a {
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            transition: var(--transition);
+        }
+        
+        .mobile-nav a:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            flex: 1;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .hero {
+            text-align: center;
+            margin-bottom: 3rem;
+            background: linear-gradient(rgba(78, 84, 200, 0.8), rgba(78, 84, 200, 0.6)), 
+                        url('https://images.unsplash.com/photo-1557683316-973673baf926?auto=format&fit=crop&w=1000');
+            background-size: cover;
+            background-position: center;
+            padding: 4rem 2rem;
+            border-radius: var(--card-radius);
+            color: white;
+            box-shadow: var(--shadow);
+        }
+        
+        .hero h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+        
+        .hero p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+        
+        .card {
+            background: white;
+            border-radius: var(--card-radius);
+            padding: 2rem;
+            text-align: center;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 24px rgba(78, 84, 200, 0.15);
+        }
+        
+        .card i {
+            font-size: 3rem;
+            margin-bottom: 1.5rem;
+            color: var(--primary);
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .card h3 {
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+        
+        .card p {
+            color: var(--medium-gray);
+        }
+        
+        .recent-reviews {
+            background: white;
+            border-radius: var(--card-radius);
+            padding: 2rem;
+            box-shadow: var(--shadow);
+        }
+        
+        .recent-reviews h2 {
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+            color: var(--primary-dark);
+            border-bottom: 2px solid var(--light-gray);
+            padding-bottom: 0.5rem;
+        }
+        
+        .form-container {
+            background: white;
+            border-radius: var(--card-radius);
+            padding: 2rem;
+            box-shadow: var(--shadow);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--dark);
+        }
+        
+        input, textarea {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--light-gray);
+            border-radius: 6px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+        
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(78, 84, 200, 0.1);
+        }
+        
+        .btn-primary, .btn-secondary {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            margin-right: 1rem;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: var(--light-gray);
+            color: var(--dark);
+        }
+        
+        .btn-secondary:hover {
+            background: #ddd;
+        }
+        
+        .search-container {
+            margin-bottom: 2rem;
+        }
+        
+        .search-results {
+            background: white;
+            border-radius: var(--card-radius);
+            padding: 2rem;
+            box-shadow: var(--shadow);
+            min-height: 200px;
+        }
+        
+        .empty-state {
+            text-align: center;
+            color: var(--medium-gray);
+            padding: 2rem;
+        }
+        
+        .rating-display {
+            font-size: 1.5rem;
+            margin: 0.5rem 0;
+            color: var(--primary);
+        }
+        
+        .contact-list {
+            background: white;
+            border-radius: var(--card-radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 2rem;
+            min-height: 200px;
+        }
+        
+        footer {
+            background: var(--primary-dark);
+            color: white;
+            text-align: center;
+            padding: 1.5rem;
+            margin-top: 2rem;
+        }
+        
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .container:not(.hidden) {
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .card-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header-container {
+                padding: 0 1rem;
+            }
+            
+            .container {
+                padding: 1rem;
+            }
+            
+            .hero {
+                padding: 2rem 1rem;
+            }
+            
+            .hero h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
 </head>
 <body>
     <header>
