@@ -1,4 +1,5 @@
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", function ()
+document.addEventListener("DOMC", function (onclick=nochange){
     loadReviews();
 });
 
