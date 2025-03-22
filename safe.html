@@ -21,6 +21,9 @@
             --light: #f9f9f9;
             --light-gray: #eaeaea;
             --medium-gray: #888;
+            --danger: #e74c3c;
+            --warning: #f39c12;
+            --success: #2ecc71;
             --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
             --card-radius: 12px;
             --transition: all 0.3s ease;
@@ -252,6 +255,12 @@
         
         .search-container {
             margin-bottom: 2rem;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .search-container input {
+            flex: 1;
         }
         
         .search-results {
@@ -271,7 +280,27 @@
         .rating-display {
             font-size: 1.5rem;
             margin: 0.5rem 0;
-            color: var(--primary);
+            display: flex;
+            gap: 5px;
+        }
+        
+        .rating-shield {
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .rating-shield:hover {
+            transform: scale(1.2);
+        }
+        
+        .shield-1 { color: var(--danger); }
+        .shield-2 { color: #f17e5d; }
+        .shield-3 { color: var(--warning); }
+        .shield-4 { color: #98d85b; }
+        .shield-5 { color: var(--success); }
+        
+        .shield-inactive {
+            color: #ddd;
         }
         
         .contact-list {
@@ -320,6 +349,10 @@
             
             .hero h1 {
                 font-size: 2rem;
+            }
+            
+            .search-container {
+                flex-direction: column;
             }
         }
     </style>
@@ -397,6 +430,7 @@
         <h2>Search Safety Reviews</h2>
         <div id="searchContainer" class="search-container">
             <input type="text" id="searchInput" placeholder="Enter a location name...">
+            <button onclick="searchReviews()" class="btn-primary">Search</button>
         </div>
         <div id="searchResults" class="search-results">
             <div class="empty-state">
@@ -420,13 +454,14 @@
             <div class="form-group">
                 <label for="ratingInput">Safety Rating</label>
                 <div id="ratingDisplay" class="rating-display">
-                    <i class="fas fa-shield-alt"></i>
-                    <i class="fas fa-shield-alt"></i>
-                    <i class="fas fa-shield-alt"></i>
-                    <i class="fas fa-shield-alt"></i>
-                    <i class="fas fa-shield-alt"></i>
+                    <i class="fas fa-shield-alt rating-shield shield-1" onclick="setRating(1)" id="shield1"></i>
+                    <i class="fas fa-shield-alt rating-shield shield-2" onclick="setRating(2)" id="shield2"></i>
+                    <i class="fas fa-shield-alt rating-shield shield-3" onclick="setRating(3)" id="shield3"></i>
+                    <i class="fas fa-shield-alt rating-shield shield-4" onclick="setRating(4)" id="shield4"></i>
+                    <i class="fas fa-shield-alt rating-shield shield-5" onclick="setRating(5)" id="shield5"></i>
                 </div>
                 <input type="hidden" id="ratingInput" value="3">
+                <p><small>Click on a shield to set your rating (1-5)</small></p>
             </div>
             <button onclick="submitReview()" class="btn-primary">Submit Review</button>
             <button onclick="showSection('menuSection')" class="btn-secondary">Cancel</button>
@@ -447,6 +482,69 @@
         <p>&copy; 2025 SafeSphere - Making communities safer together</p>
     </footer>
 
-    <script src="script.js"></script>
+    <script>
+        // Function to show the selected section and hide others
+        function showSection(sectionId) {
+            const sections = document.querySelectorAll('.container');
+            sections.forEach(section => {
+                section.classList.add('hidden');
+            });
+            
+            document.getElementById(sectionId).classList.remove('hidden');
+        }
+        
+        // Function to set the rating
+        function setRating(rating) {
+            document.getElementById('ratingInput').value = rating;
+            updateRatingDisplay(rating);
+        }
+        
+        // Function to update the rating display based on selected rating
+        function updateRatingDisplay(rating) {
+            for (let i = 1; i <= 5; i++) {
+                const shield = document.getElementById('shield' + i);
+                
+                if (i <= rating) {
+                    // Remove inactive class if present
+                    shield.classList.remove('shield-inactive');
+                } else {
+                    // Add inactive class
+                    shield.classList.add('shield-inactive');
+                }
+            }
+        }
+        
+        // Function to search reviews
+        function searchReviews() {
+            const searchTerm = document.getElementById('searchInput').value.trim();
+            const searchResults = document.getElementById('searchResults');
+            
+            // Clear previous results
+            searchResults.innerHTML = '';
+            
+            if (searchTerm === '') {
+                searchResults.innerHTML = '<div class="empty-state"><p>Please enter a location name to search.</p></div>';
+                return;
+            }
+            
+            // Here you would normally call your Firebase function to search
+            // For now, just show a message that search was performed
+            searchResults.innerHTML = `<p>Searching for reviews of "${searchTerm}"...</p>`;
+            
+            // Normally, you'd call your Firebase search function here
+            // searchFirebaseReviews(searchTerm);
+        }
+        
+        // Initialize the rating display
+        window.onload = function() {
+            updateRatingDisplay(3); // Default rating
+        };
+        
+        // Your existing Firebase functions would go here
+        // function registerUser() { ... }
+        // function submitReview() { ... }
+        // function accessContacts() { ... }
+        // etc.
+    </script>
 </body>
 </html>
