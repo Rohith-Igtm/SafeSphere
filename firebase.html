@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SafeSphere</title>
+</head>
+<body>
+    <h1>SafeSphere Firebase Test</h1>
+    
+    <button onclick="testFirebaseConnection()">Test Firebase</button>
+    <button onclick="testWrite()">Write Data</button>
+    <button onclick="testRead()">Read Data</button>
+
+    <!-- Firebase SDK (compat version for namespace syntax) -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
+
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyChMhyseh9zwPtFnh2fZIvC1zoGR9xkRnw",
+            authDomain: "safesphere-29656.firebaseapp.com",
+            databaseURL: "https://safesphere-29656-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "safesphere-29656",
+            storageBucket: "safesphere-29656.appspot.com",
+            messagingSenderId: "865787650719",
+            appId: "1:865787650719:web:71da4fec011b9408edb8aa"
+        };
+
+        // Initialize Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // Test Firebase Connection
+        function testFirebaseConnection() {
+            console.log("Testing Firebase connection...");
+            db.ref("test").set({
+                message: "Firebase is connected!"
+            }).then(() => {
+                alert("Firebase connection successful!");
+            }).catch(error => {
+                alert("Firebase error: " + error.message);
+                console.error("Firebase error:", error);
+            });
+        }
+
+        // Function to write data
+        function testWrite() {
+            db.ref("reviews").push({
+                location: "Test Location",
+                review: "This is a test review",
+                rating: 5,
+                timestamp: firebase.database.ServerValue.TIMESTAMP
+            }).then(() => {
+                alert("Test write successful!");
+            }).catch(error => {
+                alert("Write error: " + error.message);
+                console.error("Error writing data:", error);
+            });
+        }
+
+        // Function to read data
+        function testRead() {
+            db.ref("reviews").once("value").then(snapshot => {
+                const data = snapshot.val();
+                console.log("Data read:", data);
+                alert("Data retrieved! Check console.");
+            }).catch(error => {
+                alert("Read error: " + error.message);
+                console.error("Error reading data:", error);
+            });
+        }
+    </script>
+</body>
+</html>
