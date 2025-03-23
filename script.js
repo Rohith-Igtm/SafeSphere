@@ -37,6 +37,10 @@ function initializeApp() {
     if (window.isMobileDevice) setupMobileMenu();
 }
 
+function accessContacts() {
+    showEmergencyContacts();
+}
+
 function setOptimalViewport() {
     const viewportMeta = document.querySelector('meta[name="viewport"]') || document.createElement('meta');
     viewportMeta.name = 'viewport';
@@ -583,10 +587,8 @@ function createSOSIndicator() {
 }
 
 function showEmergencyContacts() {
-    // Show the contacts section
-    showSection('contactsSection');
-    
-    // Fetch emergency contacts from Firebase if available
+    // Do not call showSection() so that profileSection remains visible
+    // Fetch emergency contacts from Firebase
     db.ref('contacts').once('value')
         .then(snapshot => {
             const contacts = [];
@@ -594,7 +596,6 @@ function showEmergencyContacts() {
             
             // Display contacts or show a default emergency list
             const contactList = document.getElementById('contactList');
-            
             if (contacts.length > 0) {
                 contactList.innerHTML = contacts.map(contact => `
                     <div class="contact-card emergency">
@@ -608,7 +609,6 @@ function showEmergencyContacts() {
                     </div>
                 `).join('');
             } else {
-                // Display default emergency numbers
                 contactList.innerHTML = `
                     <div class="contact-card emergency">
                         <div class="contact-info">
@@ -633,7 +633,6 @@ function showEmergencyContacts() {
         })
         .catch(error => {
             console.error("Error loading contacts:", error);
-            // Show default emergency numbers on error
             document.getElementById('contactList').innerHTML = `
                 <div class="contact-card emergency">
                     <div class="contact-info">
