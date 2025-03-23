@@ -1,5 +1,3 @@
-// Gesture Recognition System for SafeSphere
-// Detects when user draws an "S" shape in the air with their device
 
 // Main gesture detection module
 class GestureDetector {
@@ -298,7 +296,7 @@ function initializeGestureSupport() {
         onGestureDetected: function() {
             // When S gesture is detected, show the search page
             showNotification("'S' gesture detected! Redirecting to geolocation...", "success");
-            window.location.href = "geoloc.html";
+            window.location.href = "new.html";
         }
     });
     
