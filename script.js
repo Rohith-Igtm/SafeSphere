@@ -46,20 +46,6 @@ function setOptimalViewport() {
     document.head.appendChild(viewportMeta);
 }
 
-function setupInitialState() {
-    // Add any additional initial setup needed
-    const searchSection = document.getElementById('searchSection');
-    if (searchSection && !document.getElementById('searchButton')) {
-        const searchForm = document.querySelector('#searchSection .form-group') || document.createElement('div');
-        const searchButtonContainer = document.createElement('div');
-        searchButtonContainer.className = 'form-group search-button-container';
-        searchButtonContainer.innerHTML = `
-            <button id="searchButton" class="btn-primary">Search</button>
-        `;
-        searchForm.parentNode.insertBefore(searchButtonContainer, searchForm.nextSibling);
-    }
-}
-
 function setupEventListeners() {
     window.addEventListener('resize', handleResize);
     window.addEventListener('popstate', handlePopState);
@@ -68,23 +54,13 @@ function setupEventListeners() {
     const ratingInput = document.getElementById("ratingInput");
     if (ratingInput) {
         ratingInput.addEventListener("change", updateRatingDisplay);
-        setupRatingSystem();
+        setupTouchRating();
     }
 
-    // Search Input and Button
+    // Search Input
     const searchInput = document.getElementById("searchInput");
     if (searchInput) {
-        searchInput.addEventListener("keypress", function(event) {
-            if (event.key === "Enter") {
-                event.preventDefault();
-                searchReviews();
-            }
-        });
-    }
-
-    const searchButton = document.getElementById("searchButton");
-    if (searchButton) {
-        searchButton.addEventListener("click", searchReviews);
+        searchInput.addEventListener("keyup", debounce(searchReviews, 300));
     }
 
     // Mobile Touch Events
@@ -155,9 +131,6 @@ function searchReviews() {
         return;
     }
 
-    // Show loading state
-    resultsContainer.innerHTML = `<div class="loading-state"><i class="fas fa-spinner fa-spin"></i> Searching...</div>`;
-
     db.ref('reviews').orderByChild('location')
         .startAt(query)
         .endAt(query + '\uf8ff')
@@ -183,80 +156,23 @@ function showSection(sectionId, pushState = true) {
     adjustForCurrentDevice();
 }
 
-function handlePopState(event) {
-    if (event.state && event.state.section) {
-        showSection(event.state.section, false);
-    }
-}
-
 function updateRatingDisplay() {
     const rating = parseInt(document.getElementById("ratingInput").value);
     const stars = document.querySelectorAll("#ratingDisplay i");
     
     stars.forEach((star, index) => {
-        // Remove all existing rating classes
-        star.className = "fas fa-star";
-        
-        // Add color class based on rating
-        if (index < rating) {
-            star.classList.add(`rating-${rating}`);
-        } else {
-            star.classList.add('rating-inactive');
-        }
+        star.classList.remove("rating-1", "rating-2", "rating-3", "rating-4", "rating-5");
+        if (index < rating) star.classList.add(`rating-${rating}`);
     });
-}
-
-function setupRatingSystem() {
-    // Make sure we have the rating display container
-    const ratingDisplay = document.getElementById("ratingDisplay");
-    if (!ratingDisplay) return;
-    
-    // Clear existing stars if any
-    ratingDisplay.innerHTML = '';
-    
-    // Create 5 stars
-    for (let i = 0; i < 5; i++) {
-        const star = document.createElement('i');
-        star.className = 'fas fa-star rating-inactive';
-        star.dataset.value = i + 1;
-        ratingDisplay.appendChild(star);
-    }
-    
-    // Add event listeners to each star
-    document.querySelectorAll('#ratingDisplay i').forEach(star => {
-        star.addEventListener('click', () => {
-            document.getElementById("ratingInput").value = star.dataset.value;
-            updateRatingDisplay();
-        });
-        
-        // Add hover effect
-        star.addEventListener('mouseenter', () => {
-            const value = parseInt(star.dataset.value);
-            document.querySelectorAll('#ratingDisplay i').forEach((s, index) => {
-                s.classList.toggle('rating-hover', index < value);
-            });
-        });
-        
-        // Remove hover effect
-        star.addEventListener('mouseleave', () => {
-            document.querySelectorAll('#ratingDisplay i').forEach(s => {
-                s.classList.remove('rating-hover');
-            });
-        });
-    });
-    
-    // Initial update
-    updateRatingDisplay();
 }
 
 function setupMobileMenu() {
-    if (!document.querySelector('.mobile-menu-button')) {
+    if (!document.getElementById('mobileMenu')) {
         const menuButton = document.createElement('button');
         menuButton.className = 'mobile-menu-button';
         menuButton.innerHTML = '<i class="fas fa-bars"></i>';
         
         const mobileMenu = document.createElement('div');
-        mobileMenu.id = 'mobileMenu';
         mobileMenu.className = 'mobile-menu hidden';
         mobileMenu.innerHTML = `
             <div class="mobile-menu-header">
@@ -311,14 +227,12 @@ function validateReview(review) {
 
 function displayRecentReviews(reviews) {
     const container = document.getElementById("recentReviewsList");
-    if (!container) return;
-    
-    container.innerHTML = reviews.length > 0 ? reviews.map(review => `
+    container.innerHTML = reviews.map(review => `
         <div class="review">
             <div class="review-header">
                 <div class="review-location">${review.location}</div>
                 <div class="review-rating">
-                    ${getRatingStars(review.rating)}
+                    ${Array(review.rating).fill('<i class="fas fa-shield-alt"></i>').join('')}
                 </div>
             </div>
             <div class="review-content">
@@ -329,76 +243,50 @@ function displayRecentReviews(reviews) {
                 </div>
             </div>
         </div>
-    `).join('') : `<div class="empty-state">No reviews yet. Be the first to write one!</div>`;
-}
-
-function getRatingStars(rating) {
-    const ratingValue = parseInt(rating) || 0;
-    let stars = '';
-    
-    for (let i = 0; i < 5; i++) {
-        if (i < ratingValue) {
-            stars += `<i class="fas fa-star rating-${ratingValue}"></i>`;
-        } else {
-            stars += `<i class="fas fa-star rating-inactive"></i>`;
-        }
-    }
-    
-    return stars;
+    `).join('');
 }
 
 function displaySearchResults(results) {
     const container = document.getElementById("searchResults");
-    if (!container) return;
-    
     container.innerHTML = results.length > 0 ? 
-        `<div class="search-results-count">${results.length} result${results.length > 1 ? 's' : ''} found</div>
-        <div class="search-results-grid">
-            ${results.map(review => `
-                <div class="result-card">
-                    <h4>${review.location}</h4>
-                    <div class="rating">${getRatingStars(review.rating)}</div>
-                    <p>${review.review}</p>
-                    <div class="review-meta">
-                        <span>By ${review.userName}</span>
-                        <span>${new Date(review.timestamp).toLocaleDateString()}</span>
-                    </div>
+        results.map(review => `
+            <div class="result-card">
+                <h4>${review.location}</h4>
+                <div class="rating">${'⭐'.repeat(review.rating)}</div>
+                <p>${review.review}</p>
+                <div class="review-meta">
+                    <span>By ${review.userName}</span>
+                    <span>${new Date(review.timestamp).toLocaleDateString()}</span>
                 </div>
-            `).join('')}
-        </div>` :
-        `<div class="empty-state">No results found for your search</div>`;
+            </div>
+        `).join('') :
+        `<div class="empty-state">No results found</div>`;
 }
 
 function handleResize() {
+    const wasMobile = window.isMobileDevice;
     window.isMobileDevice = window.innerWidth < 768;
     
-    if (window.isMobileDevice) {
-        setupMobileMenu();
-    } else if (document.querySelector('.mobile-menu-button')) {
-        // Only remove if we need to
-        document.querySelector('.mobile-menu-button').remove();
-        document.getElementById('mobileMenu')?.remove();
+    if (wasMobile !== window.isMobileDevice) {
+        if (window.isMobileDevice) setupMobileMenu();
+        else document.getElementById('mobileMenu')?.remove();
     }
-    
     adjustForCurrentDevice();
 }
 
 function adjustForCurrentDevice() {
-    document.body.classList.toggle('mobile-view', window.isMobileDevice);
-    document.body.classList.toggle('desktop-view', !window.isMobileDevice);
-    
     document.querySelectorAll('.review').forEach(review => 
         review.classList.toggle('mobile-review', window.isMobileDevice)
     );
-    
-    // Adjust search results display
-    const searchResults = document.getElementById('searchResults');
-    if (searchResults) {
-        const resultsGrid = searchResults.querySelector('.search-results-grid');
-        if (resultsGrid) {
-            resultsGrid.classList.toggle('mobile-grid', window.isMobileDevice);
-        }
-    }
+}
+
+function setupTouchRating() {
+    document.querySelectorAll('#ratingDisplay i').forEach((star, index) => {
+        star.addEventListener('click', () => {
+            document.getElementById("ratingInput").value = index + 1;
+            updateRatingDisplay();
+        });
+    });
 }
 
 function debounce(func, timeout = 300) {
@@ -417,15 +305,7 @@ function showNotification(message, type = 'info') {
         <span>${message}</span>
     `;
     document.body.appendChild(notification);
-    
-    // Add animation
-    setTimeout(() => notification.classList.add('show'), 10);
-    
-    // Remove notification after delay
-    setTimeout(() => {
-        notification.classList.remove('show');
-        setTimeout(() => notification.remove(), 300); // Wait for fade out animation
-    }, 3000);
+    setTimeout(() => notification.remove(), 3000);
 }
 
 function handleError(error, context) {
@@ -440,16 +320,338 @@ function resetReviewForm() {
     updateRatingDisplay();
 }
 
-function loadUserData() {
-    // Fetch user data if available (assuming user authentication is implemented)
-    // For now, just check if we have user data stored in local storage
-    const storedUser = localStorage.getItem('currentUser');
-    if (storedUser) {
-        try {
-            currentUser = JSON.parse(storedUser);
-        } catch (e) {
-            console.error('Error parsing stored user data', e);
-            localStorage.removeItem('currentUser');
-        }
+// ================= GESTURE RECOGNITION INTEGRATION =================
+
+// Add this code at the end of your script.js file
+
+let gestureCanvas, gestureContext;
+let isDrawing = false;
+let points = [];
+let lastPoint = { x: 0, y: 0 };
+let sosActivated = false;
+let sosCooldown = false;
+
+function initializeGestureRecognition() {
+    // Create canvas element for gesture tracking
+    gestureCanvas = document.createElement('canvas');
+    gestureCanvas.id = 'gestureCanvas';
+    gestureCanvas.width = window.innerWidth;
+    gestureCanvas.height = window.innerHeight;
+    gestureCanvas.style.position = 'fixed';
+    gestureCanvas.style.top = '0';
+    gestureCanvas.style.left = '0';
+    gestureCanvas.style.pointerEvents = 'none';
+    gestureCanvas.style.zIndex = '1000';
+    gestureCanvas.style.display = 'none';
+    document.body.appendChild(gestureCanvas);
+    
+    gestureContext = gestureCanvas.getContext('2d');
+    
+    // Set up touch and mouse event listeners for the entire document
+    document.addEventListener('mousedown', startGestureCapture);
+    document.addEventListener('mousemove', captureGestureMove);
+    document.addEventListener('mouseup', endGestureCapture);
+    
+    document.addEventListener('touchstart', handleTouchStart);
+    document.addEventListener('touchmove', handleTouchMove);
+    document.addEventListener('touchend', handleTouchEnd);
+    
+    // Create hidden SOS indicator
+    createSOSIndicator();
+}
+
+function startGestureCapture(e) {
+    e.preventDefault();
+    isDrawing = true;
+    points = [];
+    lastPoint = { x: e.clientX, y: e.clientY };
+    points.push(lastPoint);
+    
+    gestureCanvas.style.display = 'block';
+    gestureContext.clearRect(0, 0, gestureCanvas.width, gestureCanvas.height);
+    gestureContext.beginPath();
+    gestureContext.moveTo(lastPoint.x, lastPoint.y);
+    gestureContext.strokeStyle = 'rgba(255, 0, 0, 0.5)';
+    gestureContext.lineWidth = 4;
+    gestureContext.lineCap = 'round';
+}
+
+function captureGestureMove(e) {
+    if (!isDrawing) return;
+    
+    const currentPoint = { x: e.clientX, y: e.clientY };
+    points.push(currentPoint);
+    
+    gestureContext.lineTo(currentPoint.x, currentPoint.y);
+    gestureContext.stroke();
+    lastPoint = currentPoint;
+}
+
+function endGestureCapture() {
+    if (!isDrawing) return;
+    isDrawing = false;
+    
+    setTimeout(() => {
+        gestureCanvas.style.display = 'none';
+    }, 500);
+    
+    recognizeGesture();
+}
+
+function handleTouchStart(e) {
+    if (e.touches.length === 1) {
+        e.preventDefault();
+        const touch = e.touches[0];
+        const mouseEvent = new MouseEvent('mousedown', {
+            clientX: touch.clientX,
+            clientY: touch.clientY
+        });
+        startGestureCapture(mouseEvent);
     }
 }
+
+function handleTouchMove(e) {
+    if (e.touches.length === 1) {
+        e.preventDefault();
+        const touch = e.touches[0];
+        const mouseEvent = new MouseEvent('mousemove', {
+            clientX: touch.clientX,
+            clientY: touch.clientY
+        });
+        captureGestureMove(mouseEvent);
+    }
+}
+
+function handleTouchEnd() {
+    endGestureCapture();
+}
+
+function recognizeGesture() {
+    if (points.length < 10) return; // Ignore very short gestures
+    
+    // Basic 'S' shape detection
+    // This is a simplified approach - looking for a shape that goes back and forth horizontally
+    let directionChanges = 0;
+    let lastDirection = null;
+    
+    for (let i = 1; i < points.length; i++) {
+        const dx = points[i].x - points[i-1].x;
+        
+        // Determine horizontal direction (left or right)
+        let currentDirection = null;
+        if (Math.abs(dx) > 5) { // Threshold to ignore tiny movements
+            currentDirection = dx > 0 ? 'right' : 'left';
+            
+            // Count direction changes
+            if (lastDirection !== null && currentDirection !== lastDirection) {
+                directionChanges++;
+            }
+            
+            lastDirection = currentDirection;
+        }
+    }
+    
+    // 'S' shape typically has at least 2 direction changes
+    if (directionChanges >= 2) {
+        triggerSOS();
+    }
+}
+
+function triggerSOS() {
+    if (sosCooldown) return;
+    
+    sosActivated = true;
+    sosCooldown = true;
+    
+    // Show SOS indicator
+    const sosIndicator = document.getElementById('sosIndicator');
+    sosIndicator.classList.add('active');
+    
+    // Play alert sound if available
+    const alertSound = new Audio('https://cdnjs.cloudflare.com/ajax/libs/ion-sound/3.0.7/sounds/bell_ring.mp3');
+    alertSound.play().catch(e => console.log('Error playing sound:', e));
+    
+    // Call emergency contacts
+    showEmergencyContacts();
+    
+    // Vibrate device if supported
+    if (navigator.vibrate) {
+        // SOS pattern: 3 short, 3 long, 3 short
+        navigator.vibrate([200, 200, 200, 200, 200, 500, 500, 200, 500, 200, 500, 200, 200, 200, 200, 200]);
+    }
+    
+    // Reset cooldown after 10 seconds
+    setTimeout(() => {
+        sosIndicator.classList.remove('active');
+        sosCooldown = false;
+    }, 10000);
+}
+
+function createSOSIndicator() {
+    const sosIndicator = document.createElement('div');
+    sosIndicator.id = 'sosIndicator';
+    sosIndicator.innerHTML = `
+        <div class="sos-content">
+            <h2><i class="fas fa-exclamation-triangle"></i> SOS ACTIVATED</h2>
+            <p>Emergency contacts being notified</p>
+            <button id="cancelSOS">Cancel</button>
+        </div>
+    `;
+    
+    const style = document.createElement('style');
+    style.textContent = `
+        #sosIndicator {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 0, 0, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
+        }
+        #sosIndicator.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .sos-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.7); }
+            70% { box-shadow: 0 0 0 15px rgba(255, 0, 0, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0); }
+        }
+        #cancelSOS {
+            background-color: #444;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            margin-top: 15px;
+            cursor: pointer;
+        }
+    `;
+    
+    document.head.appendChild(style);
+    document.body.appendChild(sosIndicator);
+    
+    document.getElementById('cancelSOS').addEventListener('click', function() {
+        document.getElementById('sosIndicator').classList.remove('active');
+        sosActivated = false;
+    });
+}
+
+function showEmergencyContacts() {
+    // Show the contacts section
+    showSection('contactsSection');
+    
+    // Fetch emergency contacts from Firebase if available
+    db.ref('contacts').once('value')
+        .then(snapshot => {
+            const contacts = [];
+            snapshot.forEach(child => contacts.push({ id: child.key, ...child.val() }));
+            
+            // Display contacts or show a default emergency list
+            const contactList = document.getElementById('contactList');
+            
+            if (contacts.length > 0) {
+                contactList.innerHTML = contacts.map(contact => `
+                    <div class="contact-card emergency">
+                        <div class="contact-info">
+                            <h3>${contact.name}</h3>
+                            <p>${contact.phone}</p>
+                        </div>
+                        <a href="tel:${contact.phone}" class="call-button">
+                            <i class="fas fa-phone"></i> Call
+                        </a>
+                    </div>
+                `).join('');
+            } else {
+                // Display default emergency numbers
+                contactList.innerHTML = `
+                    <div class="contact-card emergency">
+                        <div class="contact-info">
+                            <h3>Emergency Services</h3>
+                            <p>911</p>
+                        </div>
+                        <a href="tel:911" class="call-button">
+                            <i class="fas fa-phone"></i> Call
+                        </a>
+                    </div>
+                    <div class="contact-card emergency">
+                        <div class="contact-info">
+                            <h3>Police Department</h3>
+                            <p>Non-emergency: 311</p>
+                        </div>
+                        <a href="tel:311" class="call-button">
+                            <i class="fas fa-phone"></i> Call
+                        </a>
+                    </div>
+                `;
+            }
+        })
+        .catch(error => {
+            console.error("Error loading contacts:", error);
+            // Show default emergency numbers on error
+            document.getElementById('contactList').innerHTML = `
+                <div class="contact-card emergency">
+                    <div class="contact-info">
+                        <h3>Emergency Services</h3>
+                        <p>911</p>
+                    </div>
+                    <a href="tel:911" class="call-button">
+                        <i class="fas fa-phone"></i> Call
+                    </a>
+                </div>
+            `;
+        });
+}
+
+// Initialize gesture recognition during app startup
+document.addEventListener("DOMContentLoaded", function() {
+    // Add this line to your existing DOMContentLoaded event handler
+    initializeGestureRecognition();
+});
+
+// Add CSS styles for emergency contacts
+const emergencyStyles = document.createElement('style');
+emergencyStyles.textContent = `
+    .contact-card.emergency {
+        border: 2px solid #ff3333;
+        background-color: #fff8f8;
+        animation: emergency-pulse 2s infinite;
+    }
+    
+    .call-button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #ff3333;
+        color: white;
+        padding: 8px 15px;
+        border-radius: 5px;
+        text-decoration: none;
+        font-weight: bold;
+    }
+    
+    .call-button i {
+        margin-right: 5px;
+    }
+    
+    @keyframes emergency-pulse {
+        0% { box-shadow: 0 0 0 0 rgba(255, 51, 51, 0.7); }
+        70% { box-shadow: 0 0 0 10px rgba(255, 51, 51, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(255, 51, 51, 0); }
+    }
+`;
+document.head.appendChild(emergencyStyles);
