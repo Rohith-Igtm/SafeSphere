@@ -1,3 +1,98 @@
+/* Global Transition Settings */
+* {
+    transition: all 0.3s ease;
+}
+
+/* Header & Navigation */
+header {
+    transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+
+.header-container {
+    transition: padding 0.3s ease;
+}
+
+nav a {
+    text-decoration: none;
+    color: var(--dark-color);
+    font-weight: 500;
+    transition: color 0.3s ease, transform 0.3s ease;
+}
+
+nav a:hover {
+    color: var(--primary-color);
+    transform: scale(1.05);
+}
+
+/* Mobile Navigation - Always visible with enhanced transitions */
+.mobile-nav {
+    max-height: none !important;
+    overflow: visible !important;
+    padding: 10px 5%;
+    background: rgba(255, 255, 255, 0.95);
+    border-bottom: 1px solid var(--gray-color);
+    transition: background 0.3s ease, transform 0.3s ease;
+}
+
+.mobile-nav:hover {
+    background: rgba(255, 255, 255, 1);
+    transform: translateY(-2px);
+}
+
+.mobile-nav ul li {
+    transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.mobile-nav ul li a {
+    display: flex;
+    align-items: center;
+    padding: 10px 0;
+    transition: color 0.3s ease, transform 0.3s ease;
+}
+
+.mobile-nav ul li a:hover {
+    color: var(--primary-color);
+    transform: scale(1.05);
+}
+
+/* Containers */
+.container {
+    transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+/* Cards and Reviews */
+.card, .review, .review-card, .result-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover, .review-card:hover, .result-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+
+/* Buttons */
+.btn-primary, .btn-secondary {
+    transition: background 0.3s ease, transform 0.3s ease;
+}
+
+.btn-primary:hover, .btn-secondary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Forms & Inputs */
+input, textarea, select {
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+input:focus, textarea:focus, select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(74, 122, 255, 0.1);
+}
+
+
+
+
 :root {
     --primary-color: #4a7aff;
     --primary-dark: #3a67e5;
@@ -697,5 +792,13 @@ footer {
     
     .touch-active {
         opacity: 0.7;
+    }
+}
+
+@media (max-width: 770px) {
+    .mobile-nav {
+        max-height: none !important;
+        overflow: visible !important;
+        padding: 5px 5%;
     }
 }
