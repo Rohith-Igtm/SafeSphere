@@ -296,7 +296,7 @@ function initializeGestureSupport() {
         onGestureDetected: function() {
             showNotification("'S' gesture detected! Redirecting...", "success");
             // Open new.html in a new tab/window
-            window.open("new.html", "_blank"); // Corrected line
+            window.open("geoloc.html", "_blank"); // Corrected line
         }
     });
 }
