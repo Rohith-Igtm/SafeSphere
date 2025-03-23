@@ -17,17 +17,10 @@
                 <i class="fas fa-shield-alt"></i>
                 <span>SafeSphere</span>
             </div>
-            <button id="menuToggle" class="menu-toggle">
-                <i class="fas fa-bars"></i>
-            </button>
         </div>
         <nav id="mobileNav" class="mobile-nav">
             <ul>
                 <li><a href="#" onclick="showSection('menuSection')"><i class="fas fa-home"></i> Home</a></li>
-                <li><a href="#" onclick="showSection('profileSection')"><i class="fas fa-user"></i> Profile</a></li>
-                <li><a href="#" onclick="showSection('searchSection')"><i class="fas fa-search"></i> Search</a></li>
-                <li><a href="#" onclick="showSection('reviewSection')"><i class="fas fa-star"></i> Review</a></li>
-                <li><a href="#" onclick="showSection('contactsSection')"><i class="fas fa-address-book"></i> Contacts</a></li>
             </ul>
         </nav>
     </header>
@@ -56,6 +49,12 @@
                 <h3>Post Review</h3>
                 <p>Share your experience to help others</p>
             </div>
+            
+            <div class="card" onclick="showSection('gestureSection')">
+                <i class="fas fa-hand-paper"></i>
+                <h3>Gesture SOS</h3>
+                <p>Configure and test emergency gesture alerts</p>
+            </div>
         </div>
         
         <div class="recent-reviews">
@@ -80,29 +79,16 @@
                 <label for="phoneInput">Phone Number</label>
                 <input type="tel" id="phoneInput" placeholder="Enter your phone number">
             </div>
-            
-            <!-- New section for accessing contacts -->
-            <div class="form-group">
-                <label>Emergency Contacts</label>
-                <button onclick="accessContacts()" class="btn-primary"><i class="fas fa-address-book"></i> Access Contacts</button>
-                <div id="favoriteContactsList" class="favorite-contacts"></div>
-            </div>
-            
-            <div class="button-group">
-                <button onclick="registerUser()" class="btn-primary"><i class="fas fa-save"></i> Save Details</button>
-                <button onclick="showSection('menuSection')" class="btn-secondary"><i class="fas fa-times"></i> Cancel</button>
-            </div>
+            <button onclick="registerUser()" class="btn-primary">Save Details</button>
+            <button onclick="showSection('menuSection')" class="btn-secondary">Cancel</button>
         </div>
     </div>
     
     <!-- Search Section -->
     <div class="container hidden" id="searchSection">
         <h2>Search Safety Reviews</h2>
-        <div class="search-container">
-            <div class="search-bar">
-                <input type="text" id="searchInput" placeholder="Enter a location name...">
-                <button onclick="searchReviews()" class="btn-primary"><i class="fas fa-search"></i></button>
-            </div>
+        <div id="searchContainer" class="search-container">
+            <input type="text" id="searchInput" placeholder="Enter a location name...">
         </div>
         <div id="searchResults" class="search-results">
             <div class="empty-state">
@@ -125,53 +111,55 @@
             </div>
             <div class="form-group">
                 <label for="ratingInput">Safety Rating</label>
-                <div class="rating-explanation">
-                    <span class="rating-text rating-1">Very Unsafe</span>
-                    <span class="rating-text rating-2">Unsafe</span>
-                    <span class="rating-text rating-3">Neutral</span>
-                    <span class="rating-text rating-4">Safe</span>
-                    <span class="rating-text rating-5">Very Safe</span>
-                </div>
                 <div id="ratingDisplay" class="rating-display">
-                    <i class="fas fa-shield-alt" data-rating="1"></i>
-                    <i class="fas fa-shield-alt" data-rating="2"></i>
-                    <i class="fas fa-shield-alt" data-rating="3"></i>
-                    <i class="fas fa-shield-alt" data-rating="4"></i>
-                    <i class="fas fa-shield-alt" data-rating="5"></i>
+                    <i class="fas fa-shield-alt"></i>
+                    <i class="fas fa-shield-alt"></i>
+                    <i class="fas fa-shield-alt"></i>
+                    <i class="fas fa-shield-alt"></i>
+                    <i class="fas fa-shield-alt"></i>
                 </div>
                 <input type="hidden" id="ratingInput" value="3">
             </div>
-            <div class="button-group">
-                <button onclick="submitReview()" class="btn-primary"><i class="fas fa-paper-plane"></i> Submit Review</button>
-                <button onclick="showSection('menuSection')" class="btn-secondary"><i class="fas fa-times"></i> Cancel</button>
-            </div>
+            <button onclick="submitReview()" class="btn-primary">Submit Review</button>
+            <button onclick="showSection('menuSection')" class="btn-secondary">Cancel</button>
         </div>
     </div>
     
     <!-- Emergency Contacts Section -->
     <div class="container hidden" id="contactsSection">
         <h2>Emergency Contacts</h2>
-        <div class="form-group">
-            <button onclick="accessContacts()" class="btn-primary"><i class="fas fa-address-book"></i> Load Contacts</button>
-        </div>
         <div id="contactList" class="contact-list">
             <!-- Contacts will be loaded here -->
         </div>
-        <div id="favoriteContacts" class="favorite-contacts">
-            <h3>Favorite Emergency Contacts</h3>
-            <div id="favoriteContactsDisplay"></div>
-        </div>
-        <div class="button-group">
-            <button onclick="showSection('menuSection')" class="btn-secondary"><i class="fas fa-arrow-left"></i> Back to Menu</button>
-        </div>
+        <button onclick="accessContacts()" class="btn-primary">Load Contacts</button>
+        <button onclick="showSection('menuSection')" class="btn-secondary">Back to Menu</button>
     </div>
     
-    <!-- Toast Notification -->
-    <div id="notificationToast" class="notification-toast hidden">
-        <div class="notification-content">
-            <i class="notification-icon fas fa-check-circle"></i>
-            <span id="notificationMessage"></span>
+    <!-- Gesture Section -->
+    <div class="container hidden" id="gestureSection">
+        <h2>Emergency Gesture Detection</h2>
+        <p class="instruction">Draw an "S" shape with your device to trigger an emergency alert</p>
+        
+        <div class="gesture-container">
+            <canvas id="gestureCanvas" width="300" height="300"></canvas>
+            <div id="gestureOutput" class="gesture-output">Draw a gesture to test</div>
         </div>
+        
+        <div class="controls">
+            <button id="startGestureBtn" class="btn-primary">Start Detection</button>
+            <button id="stopGestureBtn" class="btn-secondary" disabled>Stop Detection</button>
+        </div>
+        
+        <div class="settings">
+            <h3>Gesture Settings</h3>
+            <div class="form-group">
+                <label for="sensitivityInput">Detection Sensitivity</label>
+                <input type="range" id="sensitivityInput" min="1" max="10" value="5">
+                <span id="sensitivityValue">Medium</span>
+            </div>
+        </div>
+        
+        <button onclick="showSection('menuSection')" class="btn-secondary">Back to Menu</button>
     </div>
     
     <footer>
