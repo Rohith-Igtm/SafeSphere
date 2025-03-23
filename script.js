@@ -320,140 +320,171 @@ function resetReviewForm() {
     updateRatingDisplay();
 }
 
-// ================= GESTURE RECOGNITION INTEGRATION =================
+// ================= ACCELEROMETER GESTURE INTEGRATION =================
 
 // Add this code at the end of your script.js file
 
-let gestureCanvas, gestureContext;
-let isDrawing = false;
-let points = [];
-let lastPoint = { x: 0, y: 0 };
+let accelData = { x: 0, y: 0, z: 0 };
+let lastAccelData = { x: 0, y: 0, z: 0 };
+let shakeCount = 0;
+let lastShakeTime = 0;
 let sosActivated = false;
 let sosCooldown = false;
+let isAccelerometerAvailable = false;
+let accelListening = false;
 
-function initializeGestureRecognition() {
-    // Create canvas element for gesture tracking
-    gestureCanvas = document.createElement('canvas');
-    gestureCanvas.id = 'gestureCanvas';
-    gestureCanvas.width = window.innerWidth;
-    gestureCanvas.height = window.innerHeight;
-    gestureCanvas.style.position = 'fixed';
-    gestureCanvas.style.top = '0';
-    gestureCanvas.style.left = '0';
-    gestureCanvas.style.pointerEvents = 'none';
-    gestureCanvas.style.zIndex = '1000';
-    gestureCanvas.style.display = 'none';
-    document.body.appendChild(gestureCanvas);
-    
-    gestureContext = gestureCanvas.getContext('2d');
-    
-    // Set up touch and mouse event listeners for the entire document
-    document.addEventListener('mousedown', startGestureCapture);
-    document.addEventListener('mousemove', captureGestureMove);
-    document.addEventListener('mouseup', endGestureCapture);
-    
-    document.addEventListener('touchstart', handleTouchStart);
-    document.addEventListener('touchmove', handleTouchMove);
-    document.addEventListener('touchend', handleTouchEnd);
+function initializeAccelerometerGesture() {
+    // Check if DeviceMotion is supported
+    if (window.DeviceMotionEvent) {
+        isAccelerometerAvailable = true;
+        
+        // Request permission for iOS 13+ devices
+        if (typeof DeviceMotionEvent.requestPermission === 'function') {
+            // Create a button to request permission
+            const permButton = document.createElement('button');
+            permButton.id = 'accelPermButton';
+            permButton.textContent = 'Enable SOS Gesture';
+            permButton.className = 'btn-primary';
+            permButton.style.position = 'fixed';
+            permButton.style.bottom = '20px';
+            permButton.style.right = '20px';
+            permButton.style.zIndex = '999';
+            permButton.style.borderRadius = '50%';
+            permButton.style.width = '60px';
+            permButton.style.height = '60px';
+            permButton.style.padding = '5px';
+            permButton.style.fontSize = '12px';
+            
+            permButton.addEventListener('click', () => {
+                DeviceMotionEvent.requestPermission()
+                    .then(response => {
+                        if (response === 'granted') {
+                            startAccelerometerListening();
+                            permButton.remove();
+                            showNotification("SOS gesture enabled!", "success");
+                        } else {
+                            showNotification("Permission denied for motion sensors", "error");
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error requesting motion permission:', error);
+                        showNotification("Could not access motion sensors", "error");
+                    });
+            });
+            
+            document.body.appendChild(permButton);
+        } else {
+            // Non-iOS devices don't need permission
+            startAccelerometerListening();
+        }
+    } else {
+        console.warn("Device motion not supported on this device");
+        showNotification("SOS gesture not available on this device", "error");
+    }
     
     // Create hidden SOS indicator
     createSOSIndicator();
 }
 
-function startGestureCapture(e) {
-    e.preventDefault();
-    isDrawing = true;
-    points = [];
-    lastPoint = { x: e.clientX, y: e.clientY };
-    points.push(lastPoint);
+function startAccelerometerListening() {
+    if (accelListening) return;
     
-    gestureCanvas.style.display = 'block';
-    gestureContext.clearRect(0, 0, gestureCanvas.width, gestureCanvas.height);
-    gestureContext.beginPath();
-    gestureContext.moveTo(lastPoint.x, lastPoint.y);
-    gestureContext.strokeStyle = 'rgba(255, 0, 0, 0.5)';
-    gestureContext.lineWidth = 4;
-    gestureContext.lineCap = 'round';
+    window.addEventListener('devicemotion', handleDeviceMotion);
+    accelListening = true;
+    
+    // Show a small indicator that gesture recognition is active
+    const gestureIndicator = document.createElement('div');
+    gestureIndicator.id = 'gestureIndicator';
+    gestureIndicator.innerHTML = '<i class="fas fa-shield-alt"></i>';
+    
+    const style = document.createElement('style');
+    style.textContent = `
+        #gestureIndicator {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: rgba(0, 100, 200, 0.7);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 999;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+    `;
+    
+    document.head.appendChild(style);
+    document.body.appendChild(gestureIndicator);
+    
+    showNotification("SOS gesture activated! Shake phone to trigger emergency mode", "info");
 }
 
-function captureGestureMove(e) {
-    if (!isDrawing) return;
+function handleDeviceMotion(event) {
+    // Get acceleration data
+    const acceleration = event.accelerationIncludingGravity;
+    if (!acceleration) return;
     
-    const currentPoint = { x: e.clientX, y: e.clientY };
-    points.push(currentPoint);
+    // Store current acceleration data
+    accelData = {
+        x: acceleration.x || 0,
+        y: acceleration.y || 0,
+        z: acceleration.z || 0
+    };
     
-    gestureContext.lineTo(currentPoint.x, currentPoint.y);
-    gestureContext.stroke();
-    lastPoint = currentPoint;
+    // Detect shake gesture
+    detectShakeGesture();
+    
+    // Update last acceleration data
+    lastAccelData = { ...accelData };
 }
 
-function endGestureCapture() {
-    if (!isDrawing) return;
-    isDrawing = false;
+function detectShakeGesture() {
+    const currentTime = new Date().getTime();
+    const timeDifference = currentTime - lastShakeTime;
     
-    setTimeout(() => {
-        gestureCanvas.style.display = 'none';
-    }, 500);
+    // Calculate magnitude of movement
+    const deltaX = Math.abs(accelData.x - lastAccelData.x);
+    const deltaY = Math.abs(accelData.y - lastAccelData.y);
+    const deltaZ = Math.abs(accelData.z - lastAccelData.z);
     
-    recognizeGesture();
-}
-
-function handleTouchStart(e) {
-    if (e.touches.length === 1) {
-        e.preventDefault();
-        const touch = e.touches[0];
-        const mouseEvent = new MouseEvent('mousedown', {
-            clientX: touch.clientX,
-            clientY: touch.clientY
-        });
-        startGestureCapture(mouseEvent);
-    }
-}
-
-function handleTouchMove(e) {
-    if (e.touches.length === 1) {
-        e.preventDefault();
-        const touch = e.touches[0];
-        const mouseEvent = new MouseEvent('mousemove', {
-            clientX: touch.clientX,
-            clientY: touch.clientY
-        });
-        captureGestureMove(mouseEvent);
-    }
-}
-
-function handleTouchEnd() {
-    endGestureCapture();
-}
-
-function recognizeGesture() {
-    if (points.length < 10) return; // Ignore very short gestures
+    // Define shake threshold (adjust as needed for sensitivity)
+    const shakeThreshold = 15;
     
-    // Basic 'S' shape detection
-    // This is a simplified approach - looking for a shape that goes back and forth horizontally
-    let directionChanges = 0;
-    let lastDirection = null;
-    
-    for (let i = 1; i < points.length; i++) {
-        const dx = points[i].x - points[i-1].x;
+    // Detect significant movement
+    if ((deltaX > shakeThreshold && deltaY > shakeThreshold) || 
+        (deltaX > shakeThreshold && deltaZ > shakeThreshold) || 
+        (deltaY > shakeThreshold && deltaZ > shakeThreshold)) {
         
-        // Determine horizontal direction (left or right)
-        let currentDirection = null;
-        if (Math.abs(dx) > 5) { // Threshold to ignore tiny movements
-            currentDirection = dx > 0 ? 'right' : 'left';
+        // Only count if enough time passed (prevent counting the same shake multiple times)
+        if (timeDifference > 300) {
+            shakeCount++;
+            lastShakeTime = currentTime;
             
-            // Count direction changes
-            if (lastDirection !== null && currentDirection !== lastDirection) {
-                directionChanges++;
+            // Visual feedback for shake detection
+            const indicator = document.getElementById('gestureIndicator');
+            if (indicator) {
+                indicator.style.backgroundColor = 'rgba(255, 100, 100, 0.8)';
+                setTimeout(() => {
+                    indicator.style.backgroundColor = 'rgba(0, 100, 200, 0.7)';
+                }, 200);
             }
             
-            lastDirection = currentDirection;
+            // Check for SOS pattern (3 quick shakes within 2 seconds)
+            if (shakeCount >= 3) {
+                triggerSOS();
+                shakeCount = 0;
+            }
+            
+            // Reset shake count if no additional shakes within 2 seconds
+            setTimeout(() => {
+                if (currentTime - lastShakeTime >= 2000) {
+                    shakeCount = 0;
+                }
+            }, 2000);
         }
-    }
-    
-    // 'S' shape typically has at least 2 direction changes
-    if (directionChanges >= 2) {
-        triggerSOS();
     }
 }
 
@@ -617,12 +648,6 @@ function showEmergencyContacts() {
         });
 }
 
-// Initialize gesture recognition during app startup
-document.addEventListener("DOMContentLoaded", function() {
-    // Add this line to your existing DOMContentLoaded event handler
-    initializeGestureRecognition();
-});
-
 // Add CSS styles for emergency contacts
 const emergencyStyles = document.createElement('style');
 emergencyStyles.textContent = `
@@ -655,3 +680,9 @@ emergencyStyles.textContent = `
     }
 `;
 document.head.appendChild(emergencyStyles);
+
+// Initialize accelerometer gesture during app startup
+document.addEventListener("DOMContentLoaded", function() {
+    // Add this line to your existing DOMContentLoaded event handler after the other initializations
+    initializeAccelerometerGesture();
+});
