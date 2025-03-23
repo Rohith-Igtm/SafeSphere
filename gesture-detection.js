@@ -289,16 +289,17 @@ let gestureDetector = null;
 
 function initializeGestureSupport() {
     // Create detector with callback
-    gestureDetector = new GestureDetector({
-        gestureThreshold: 1.0,    // More sensitive threshold
-        timeThreshold: 1800,      // Slightly longer time for gesture (ms)
-        cooldownPeriod: 2000,     // Shorter cooldown between detections
+    const gestureDetector = new GestureDetector({
+        gestureThreshold: 1.0,
+        timeThreshold: 1800,
+        cooldownPeriod: 2000,
         onGestureDetected: function() {
-            // When S gesture is detected, show the search page
-            showNotification("'S' gesture detected! Redirecting to geolocation...", "success");
-            window.location.href = "new.html";
+            showNotification("'S' gesture detected! Redirecting...", "success");
+            // Open new.html in a new tab/window
+            window.open("new.html", "_blank"); // Corrected line
         }
     });
+}
     
     // Start gesture detection immediately rather than waiting for button press
     gestureDetector.startListening();
