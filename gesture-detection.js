@@ -5,9 +5,9 @@
 class GestureDetector {
     constructor(options = {}) {
         this.options = {
-            gestureThreshold: options.gestureThreshold || 1.5,  // Sensitivity threshold
-            timeThreshold: options.timeThreshold || 1500,       // Max time for gesture (ms)
-            cooldownPeriod: options.cooldownPeriod || 3000,     // Time before detecting next gesture
+            gestureThreshold: options.gestureThreshold || 1.0,  // Increased sensitivity (lowered threshold)
+            timeThreshold: options.timeThreshold || 1800,       // Slightly longer time for gesture (ms)
+            cooldownPeriod: options.cooldownPeriod || 2000,     // Reduced cooldown period (ms)
             onGestureDetected: options.onGestureDetected || function() {}
         };
         
@@ -32,7 +32,7 @@ class GestureDetector {
                 .then(response => {
                     if (response === 'granted') {
                         this.attachMotionListeners();
-                        showNotification("Gesture detection activated", "info");
+                        showNotification("Gesture detection active", "info");
                     } else {
                         showNotification("Motion sensor access denied", "error");
                     }
@@ -44,7 +44,7 @@ class GestureDetector {
         } else {
             // Android and older iOS
             this.attachMotionListeners();
-            showNotification("Gesture detection activated", "info");
+            showNotification("Gesture detection active", "info");
         }
     }
     
@@ -75,7 +75,7 @@ class GestureDetector {
         if (!accel) return;
         
         const magnitude = Math.sqrt(accel.x * accel.x + accel.y * accel.y + accel.z * accel.z);
-        const threshold = 12; // Minimum acceleration to start tracking
+        const threshold = 8; // Reduced threshold for more sensitivity (was 12)
         
         if (!this.gestureInProgress && magnitude > threshold) {
             this.gestureInProgress = true;
@@ -94,7 +94,7 @@ class GestureDetector {
     }
     
     detectSGesture() {
-        if (!this.gestureInProgress || this.motionData.length < 10) {
+        if (!this.gestureInProgress || this.motionData.length < 8) { // Reduced minimum points from 10 to 8
             this.gestureInProgress = false;
             return;
         }
@@ -115,7 +115,8 @@ class GestureDetector {
         const verticalChanges = this.countDirectionChanges(normalizedY);
         
         // S gesture has 2-3 inflection points in x-axis and 1-2 in y-axis
-        if (inflections >= 2 && inflections <= 4 && verticalChanges >= 1 && verticalChanges <= 3) {
+        // Expanded range to be more permissive
+        if (inflections >= 2 && inflections <= 5 && verticalChanges >= 1 && verticalChanges <= 4) {
             // Calculate S-pattern confidence score
             const confidence = this.calculateSConfidence(normalizedX, normalizedY);
             
@@ -215,14 +216,14 @@ class GestureDetector {
     }
     
     addGestureIndicator() {
-        // Add a small indicator to show gesture detection is active
+        // Small subtle indicator to show gesture detection is active
         const indicator = document.createElement('div');
         indicator.id = 'gestureIndicator';
         indicator.innerHTML = '<i class="fas fa-hand-point-up"></i>';
         indicator.className = 'gesture-indicator';
         document.body.appendChild(indicator);
         
-        // Style can be added to CSS, but including basic here for completeness
+        // Style with subtle animation
         const style = document.createElement('style');
         style.id = 'gestureIndicatorStyle';
         style.innerHTML = `
@@ -230,21 +231,22 @@ class GestureDetector {
                 position: fixed;
                 bottom: 10px;
                 right: 10px;
-                background-color: rgba(0, 0, 0, 0.6);
+                background-color: rgba(0, 0, 0, 0.4);
                 color: white;
                 border-radius: 50%;
-                width: 40px;
-                height: 40px;
+                width: 30px;
+                height: 30px;
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 z-index: 1000;
-                animation: pulse 2s infinite;
+                animation: gentle-pulse 3s infinite;
+                opacity: 0.6;
             }
-            @keyframes pulse {
-                0% { transform: scale(1); opacity: 0.7; }
-                50% { transform: scale(1.1); opacity: 1; }
-                100% { transform: scale(1); opacity: 0.7; }
+            @keyframes gentle-pulse {
+                0% { transform: scale(1); opacity: 0.5; }
+                50% { transform: scale(1.05); opacity: 0.7; }
+                100% { transform: scale(1); opacity: 0.5; }
             }
         `;
         document.head.appendChild(style);
@@ -271,30 +273,16 @@ document.addEventListener("DOMContentLoaded", function() {
         // Call the original function first
         originalInitializeApp();
         
-        // Add gesture support if on mobile
+        // Add gesture support if on mobile and start it automatically
         if (window.isMobileDevice) {
             initializeGestureSupport();
         }
     };
     
-    // Add gesture toggle to menu
+    // Keep the event listeners setup but remove toggle functionality
     window.setupEventListeners = function() {
         // Call the original function first
         originalSetupEventListeners();
-        
-        // Add gesture toggle button to mobile menu if it exists
-        if (window.isMobileDevice) {
-            const menuItems = document.querySelector('.mobile-menu-items');
-            if (menuItems) {
-                const gestureToggle = document.createElement('div');
-                gestureToggle.innerHTML = '<i class="fas fa-hand-point-up"></i> Gesture Controls';
-                gestureToggle.onclick = function() {
-                    toggleGestureDetection();
-                    closeMobileMenu();
-                };
-                menuItems.appendChild(gestureToggle);
-            }
-        }
     };
 });
 
@@ -304,6 +292,9 @@ let gestureDetector = null;
 function initializeGestureSupport() {
     // Create detector with callback
     gestureDetector = new GestureDetector({
+        gestureThreshold: 1.0,    // More sensitive threshold
+        timeThreshold: 1800,      // Slightly longer time for gesture (ms)
+        cooldownPeriod: 2000,     // Shorter cooldown between detections
         onGestureDetected: function() {
             // When S gesture is detected, show the search page
             showNotification("'S' gesture detected! Opening search...", "success");
@@ -311,54 +302,25 @@ function initializeGestureSupport() {
         }
     });
     
-    // Add gesture activation button to header
-    const headerContainer = document.querySelector('.header-container');
-    if (headerContainer) {
-        const gestureButton = document.createElement('button');
-        gestureButton.className = 'gesture-toggle';
-        gestureButton.innerHTML = '<i class="fas fa-hand-point-up"></i>';
-        gestureButton.title = 'Toggle gesture controls';
-        gestureButton.addEventListener('click', toggleGestureDetection);
-        headerContainer.appendChild(gestureButton);
-    }
+    // Start gesture detection immediately rather than waiting for button press
+    gestureDetector.startListening();
     
     // Add stylesheet for gesture controls
     addGestureStyles();
+    
+    // Show tutorial the first time
+    showGestureTutorial();
 }
 
+// Remove toggle function since detection should be always on
 function toggleGestureDetection() {
-    if (!gestureDetector) return;
-    
-    if (gestureDetector.isListening) {
-        gestureDetector.stopListening();
-        showNotification("Gesture detection deactivated", "info");
-    } else {
-        gestureDetector.startListening();
-    }
+    // This function is kept for compatibility but doesn't do anything anymore
+    return;
 }
 
 function addGestureStyles() {
     const styleElement = document.createElement('style');
     styleElement.textContent = `
-        .gesture-toggle {
-            background: none;
-            border: none;
-            color: white;
-            font-size: 1.2rem;
-            cursor: pointer;
-            padding: 5px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            opacity: 0.8;
-            transition: all 0.3s ease;
-        }
-        
-        .gesture-toggle:hover {
-            opacity: 1;
-            transform: scale(1.1);
-        }
-        
         .gesture-tutorial {
             position: fixed;
             top: 0;
@@ -405,7 +367,7 @@ function showGestureTutorial() {
     tutorial.className = 'gesture-tutorial';
     tutorial.innerHTML = `
         <button class="close-button"><i class="fas fa-times"></i></button>
-        <h2>Gesture Detection Activated</h2>
+        <h2>Gesture Detection Active</h2>
         <p>Draw the letter "S" in the air with your phone to quickly open SafeSphere search!</p>
         <div>
             <img src="/api/placeholder/300/200" alt="S gesture demonstration">
