@@ -297,8 +297,8 @@ function initializeGestureSupport() {
         cooldownPeriod: 2000,     // Shorter cooldown between detections
         onGestureDetected: function() {
             // When S gesture is detected, show the search page
-            showNotification("'S' gesture detected! Opening search...", "success");
-            showSection('searchSection');
+            showNotification("'S' gesture detected! Redirecting to geolocation...", "success");
+            window.location.href = "geoloc.html";
         }
     });
     
